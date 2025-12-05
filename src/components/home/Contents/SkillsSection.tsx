@@ -1,61 +1,75 @@
 import { motion } from "framer-motion";
+import Carousel from "@/components/shared/Carousel";
 
 const skills = [
-  { name: "Creator Matching", level: 95 },
-  { name: "Campaign Management", level: 90 },
-  { name: "Analytics & Insights", level: 88 },
-  { name: "Content Strategy", level: 92 },
+  {
+    title: "Creator Matching",
+    description:
+      "AI-powered matching connects brands with the right creators based on audience fit, niche, engagement, and campaign goals. We continuously learn from performance data to improve pairing accuracy.",
+    icon: "👥",
+  },
+  {
+    title: "Campaign Management",
+    description:
+      "Plan, launch, and manage UGC campaigns end-to-end. Collaborate with creators, approve content, track deliverables, and monitor results in a single workflow.",
+    icon: "📊",
+  },
+  {
+    title: "Analytics & Insights",
+    description:
+      "Actionable analytics: CPM, CTR, conversions, audience demographics, sentiment analysis, and ROI tracking — all visualized to help you make data-informed decisions.",
+    icon: "📈",
+  },
+  {
+    title: "Content Strategy",
+    description:
+      "We craft creator-friendly briefs, tone of voice, platform-specific guidelines, and review checklists to ensure content quality and brand consistency across campaigns.",
+    icon: "✨",
+  },
 ];
 
 export const SkillsSection = () => {
   return (
-    <section className="py-32 px-6">
+    <section className="py-32 px-6 bg-transparent relative overflow-hidden">
       <div className="max-w-7xl mx-auto">
-        <motion.h2
+        {/* Header */}
+        <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-5xl md:text-6xl font-bold mb-16 text-center"
+          transition={{ duration: 0.6 }}
+          className="text-center mb-16"
         >
-          Our Skills
-        </motion.h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-          {skills.map((skill, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, x: -50 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true, margin: "-50px" }}
-              transition={{
-                delay: index * 0.15,
-                duration: 0.6,
-                ease: "easeOut",
-              }}
-              whileHover={{ x: 10 }}
-              className="space-y-3"
-            >
-              <div className="flex justify-between items-center">
-                <span className="text-xl font-semibold">{skill.name}</span>
-                <span className="text-lg font-bold">{skill.level}%</span>
-              </div>
-              <motion.div
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                viewport={{ once: true }}
-                className="relative h-3 bg-secondary rounded-full overflow-hidden"
-              >
-                <motion.div
-                  initial={{ width: 0 }}
-                  whileInView={{ width: `${skill.level}%` }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 1, delay: index * 0.1 }}
-                  className="h-full rounded-full bg-accent"
-                />
-              </motion.div>
-            </motion.div>
-          ))}
+          <span className="text-[3.5rem] text-accent-2 dark:text-accent uppercase tracking-wider">
+            Our Expertise
+          </span>
+          <h2 className="text-[1.5rem] md:text-6xl font-bold mt-3 text-secondary">
+            What We Do Best
+          </h2>
+        </motion.div>
+
+        {/* Carousel (react-bits) */}
+        <div className="flex justify-center">
+          <Carousel
+            items={skills.map((s, i) => ({
+              title: s.title,
+              description: s.description,
+              id: i + 1,
+              icon: <span className="text-2xl">{s.icon}</span>,
+            }))}
+            baseWidth={720}
+            autoplay
+            autoplayDelay={3500}
+            pauseOnHover
+            loop
+            round={false}
+          />
         </div>
       </div>
+
+      {/* Background decoration */}
+      {/* <div className="absolute top-1/4 left-0 w-64 h-64 bg-accent/5 rounded-full blur-[100px] pointer-events-none" /> */}
+      {/* <div className="absolute bottom-1/4 right-0 w-64 h-64 bg-accent-2/5 rounded-full blur-[100px] pointer-events-none" /> */}
     </section>
   );
 };
