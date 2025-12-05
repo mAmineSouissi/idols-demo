@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { motion, PanInfo, useMotionValue, useTransform } from "motion/react";
+import type { Transition } from "motion/react";
 import React, { JSX } from "react";
 
 // replace icons with your own if needed
@@ -63,7 +64,11 @@ const DEFAULT_ITEMS: CarouselItem[] = [
 const DRAG_BUFFER = 0;
 const VELOCITY_THRESHOLD = 500;
 const GAP = 16;
-const SPRING_OPTIONS = { type: "spring", stiffness: 300, damping: 30 };
+const SPRING_OPTIONS: Transition = {
+  type: "spring",
+  stiffness: 300,
+  damping: 30,
+} as const;
 
 export default function Carousel({
   items = DEFAULT_ITEMS,
@@ -124,7 +129,9 @@ export default function Carousel({
     pauseOnHover,
   ]);
 
-  const effectiveTransition = isResetting ? { duration: 0 } : SPRING_OPTIONS;
+  const effectiveTransition: Transition = isResetting
+    ? ({ duration: 0 } as Transition)
+    : SPRING_OPTIONS;
 
   const handleAnimationComplete = () => {
     if (loop && currentIndex === carouselItems.length - 1) {
