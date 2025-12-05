@@ -3,7 +3,7 @@
 @tailwind utilities;
 @import "tw-animate-css";
 
-@custom-variant dark (&:is(.dark *));
+@custom-variant dark (&:is([data-theme="dark"] *));
 
 /* Default to brand theme */
 :root,
@@ -241,12 +241,12 @@ body {
     @apply bg-background text-foreground;
     letter-spacing: var(--tracking-normal);
   }
-  
+
   /* Smooth scroll behavior */
   html {
     scroll-behavior: smooth;
   }
-  
+
   /* Respect reduced motion */
   @media (prefers-reduced-motion: reduce) {
     *,
