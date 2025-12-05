@@ -3,11 +3,10 @@ import { useEffect, useState } from "react";
 import { Navbar } from "@/components/layout/navbar/NavBar";
 import { HeroSection } from "@/components/home/Contents/HeroSection";
 import { WeAreSection } from "@/components/home/Contents/WeAreSection/WeAreSection";
-import { CardGridSection } from "@/components/home/Contents/ScrollingCardsSection/CardGridSection";
-import { HowSection } from "@/components/home/Contents/HowSection";
-import { StatsSection } from "@/components/home/Contents/StatsSection";
-import { WeDoSection } from "@/components/home/Contents/WeDoSection";
-import { AboutSection } from "@/components/home/Contents/AboutSection";
+import { ScrollingCardsSection } from "@/components/home/Contents/ScrollingCardsSection/ScrollingCardsSection";
+import { HowSection } from "@/components/home/Contents/HowSection/HowSection";
+import { WeDoSection } from "@/components/home/Contents/WeDoSection/WeDoSection";
+import { AboutSection } from "@/components/home/Contents/AboutUs/AboutSection";
 import { SkillsSection } from "@/components/home/Contents/SkillsSection";
 import { PlatformSection } from "@/components/home/Contents/PlatformSection";
 
@@ -16,7 +15,8 @@ export const HomePage = () => {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
+    const raf = requestAnimationFrame(() => setMounted(true));
+    return () => cancelAnimationFrame(raf);
   }, []);
 
   if (!mounted) {
@@ -46,11 +46,9 @@ export const HomePage = () => {
 
         <WeAreSection />
 
-        <CardGridSection />
+        <ScrollingCardsSection />
 
         <HowSection />
-
-        <StatsSection />
 
         <WeDoSection />
 

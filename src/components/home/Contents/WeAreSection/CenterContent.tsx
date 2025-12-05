@@ -29,7 +29,7 @@ export const CenterContent = ({ className }: LeftContentProps) => {
         style={{ x: weX }}
       >
         <motion.h1
-          className="text-[180px] md:text-[240px] leading-none font-bold text-(--color-fg)"
+          className="text-[180px] md:text-[240px] leading-none font-bold text-bg-foreground dark:text-accent-2"
           initial={{ opacity: 0, x: -100 }}
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true }}
@@ -71,7 +71,7 @@ export const CenterContent = ({ className }: LeftContentProps) => {
 
       <motion.div className="shrink px-12" style={{ x: areX }}>
         <motion.h2
-          className="text-[180px] md:text-[240px] leading-none font-bold text-(--color-fg)"
+          className="text-[180px] md:text-[240px] leading-none font-bold text-bg-foreground dark:text-accent"
           initial={{ opacity: 0, x: 100 }}
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true }}
