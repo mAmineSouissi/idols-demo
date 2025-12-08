@@ -176,9 +176,7 @@ export default function Carousel({
     <div
       ref={containerRef}
       className={`relative overflow-hidden p-4 ${
-        round
-          ? "rounded-full border border-(--color-border) bg-(--color-panel)"
-          : "rounded-lg border border-(--color-border) bg-(--color-panel)"
+        round ? "rounded-md bg-transparent" : "rounded-md bg-transparent"
       }`}
       style={{
         width: `${baseWidth}px`,
@@ -217,7 +215,7 @@ export default function Carousel({
               className={`relative shrink-0 flex flex-col ${
                 round
                   ? "items-center justify-center text-center bg-(--color-panel) border-0"
-                  : "items-start justify-between bg-(--color-panel) border border-(--color-border) rounded-lg"
+                  : "items-start justify-between bg-(--color-panel)  rounded-lg"
               } overflow-hidden cursor-grab active:cursor-grabbing`}
               style={{
                 width: itemWidth,

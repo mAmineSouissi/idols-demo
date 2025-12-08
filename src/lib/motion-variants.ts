@@ -1,6 +1,5 @@
 import { Variants } from "framer-motion";
 
-// Core animation variants library
 export const fadeInUp: Variants = {
   initial: { opacity: 0, y: 60 },
   animate: {
