@@ -9,6 +9,7 @@ import { WeDoSection } from "@/components/home/Contents/WeDoSection/WeDoSection"
 import { AboutSection } from "@/components/home/Contents/AboutUs/AboutSection";
 import { SkillsSection } from "@/components/home/Contents/SkillsSection";
 import { PlatformSection } from "@/components/home/Contents/PlatformSection";
+import { LogoSection } from "./Contents/LogoSection";
 
 export const HomePage = () => {
   const { setTheme } = useTheme();
@@ -55,6 +56,8 @@ export const HomePage = () => {
         <AboutSection />
 
         <SkillsSection />
+
+        <LogoSection />
 
         <PlatformSection />
       </main>

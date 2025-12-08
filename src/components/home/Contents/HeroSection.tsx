@@ -1,8 +1,9 @@
 import { ThemeToggle } from "./ThemeToggle";
-import { Logo } from "./Logo";
 import { ChevronDown } from "lucide-react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
+import ShinyText from "@/components/shared/ShinyText";
+import TextType from "@/components/shared/TextType";
 
 interface HeroSectionProps {
   onThemeChange: (theme: "dark" | "light") => void;
@@ -22,60 +23,52 @@ export const HeroSection = ({ onThemeChange }: HeroSectionProps) => {
   return (
     <section
       ref={ref}
-      className="min-h-screen flex flex-col items-center justify-center px-6 relative overflow-hidden"
+      className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden"
     >
       {/* Animated gradient background */}
       <motion.div
         className="absolute inset-0 opacity-20 pointer-events-none"
         style={{ opacity, scale }}
       >
-        <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-(--color-accent) rounded-full blur-[150px] animate-pulse" />
+        <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-(--color-accent) rounded-md blur-[150px] animate-pulse" />
         <div
-          className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-(--color-accent-2) rounded-full blur-[150px] animate-pulse"
+          className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-(--color-accent-2) rounded-md blur-[150px] animate-pulse"
           style={{ animationDelay: "2s" }}
         />
       </motion.div>
 
-      <motion.div style={{ opacity, y }} className="text-center mb-16 z-10">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.5, rotateX: 45 }}
-          animate={{ opacity: 1, scale: 1, rotateX: 0 }}
-          transition={{
-            duration: 1.2,
-            ease: [0.25, 0.1, 0.25, 1],
-            type: "spring",
-            stiffness: 100,
-          }}
-        >
-          <motion.div
-            animate={{
-              y: [0, -15, 0],
-            }}
-            transition={{
-              duration: 5,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-          >
-            <Logo />
-          </motion.div>
-        </motion.div>
-
-        <motion.p
+      <motion.div style={{ opacity, y }} className="text-center mb-10 z-10">
+        <motion.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.3 }}
-          className="mt-8 text-xl text-black max-w-2xl mx-auto"
+          transition={{ duration: 0.8, delay: 0.2 }}
+          className="text-7xl md:text-8xl font-bold text-(--color-fg) tracking-tight"
         >
-          Connect with brands. Create content. Build your empire.
-        </motion.p>
+          <ShinyText
+            text="Idols"
+            className="text-[8rem] md:text-8xl font-bold text-(--color-fg)"
+          />
+          <span className="text-[8rem] text-(--color-accent)">.</span>
+        </motion.h1>
+        <TextType
+          text={[
+            "The UGC platform",
+            "Where creativity meets opportunity.",
+            "Join us today!",
+          ]}
+          typingSpeed={75}
+          pauseDuration={1500}
+          showCursor={true}
+          className="text-[3rem]"
+          cursorCharacter="|"
+        />
       </motion.div>
 
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, delay: 0.5, ease: "easeOut" }}
-        className="text-center max-w-5xl z-10"
+        className="text-center max-w-5xl z-10 mt-4"
         style={{ opacity }}
       >
         <ThemeToggle onThemeChange={onThemeChange} />
@@ -94,7 +87,7 @@ export const HeroSection = ({ onThemeChange }: HeroSectionProps) => {
           });
         }}
       >
-        <span className="text-sm text-(--color-muted) uppercase tracking-wider">
+        <span className="text-sm text-(--color-fg) uppercase tracking-wider">
           Scroll
         </span>
         <motion.div
@@ -105,7 +98,10 @@ export const HeroSection = ({ onThemeChange }: HeroSectionProps) => {
             ease: "easeInOut",
           }}
         >
-          <ChevronDown className="w-6 h-6 text-(--color-accent) group-hover:text-(--color-accent-2) transition-colors" />
+          <ChevronDown
+            className="w-6 h-6 text-(--color-mute
+          ) group-hover:text-(--color-accent-2) transition-colors"
+          />
         </motion.div>
       </motion.div>
     </section>
