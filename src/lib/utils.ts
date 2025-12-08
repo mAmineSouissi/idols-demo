@@ -5,7 +5,7 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-// Peep Animation Utils
+// ! Peep Animation Utils
 export const randomRange = (min: number, max: number): number =>
   min + Math.random() * (max - min);
 

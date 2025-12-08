@@ -2,11 +2,12 @@
 import React from "react";
 import { MenuItem } from "@/components/ui/navbar-menu";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
+
 import Link from "next/link";
 import Image from "next/image";
 import { useTheme } from "next-themes";
 import { motion } from "motion/react";
+import { Button } from "@/components/ui/moving-border";
 
 export const Navbar = ({ className }: { className?: string }) => {
   const [active, setActive] = React.useState<string | null>(null);
@@ -83,30 +84,11 @@ export const Navbar = ({ className }: { className?: string }) => {
           </div>
 
           {/* Join Us button on the far right */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.3, duration: 0.5 }}
-            whileHover={{ scale: 1.05, y: -2 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <Button
-              variant="default"
-              size="sm"
-              className="relative overflow-hidden group px-6 py-2 rounded-full font-medium transition-all duration-300 hover:shadow-xl"
-              asChild
-            >
-              <Link href="/join">
-                <span className="relative z-10">Join Us</span>
-                <motion.div
-                  className="absolute inset-0 bg-linear-to-r from-transparent via-white/20 to-transparent"
-                  initial={{ x: "-100%" }}
-                  whileHover={{ x: "100%" }}
-                  transition={{ duration: 0.6, ease: "easeInOut" }}
-                />
-              </Link>
+          <div>
+            <Button borderRadius="1rem" duration={3000}>
+              Join Us
             </Button>
-          </motion.div>
+          </div>
         </motion.div>
       </div>
     </motion.div>

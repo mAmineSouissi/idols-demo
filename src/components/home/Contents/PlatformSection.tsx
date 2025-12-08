@@ -1,35 +1,70 @@
 import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
+import { Button } from "@/components/ui/moving-border";
+import { ArrowRight, Zap, Users, Rocket } from "lucide-react";
 
 export const PlatformSection = () => {
+  const features = [
+    {
+      icon: <Zap className="w-6 h-6" />,
+      title: "Lightning Fast",
+      description: "Deploy campaigns in minutes, not weeks",
+    },
+    {
+      icon: <Users className="w-6 h-6" />,
+      title: "Creator Network",
+      description: "Connect with thousands of vetted creators",
+    },
+    {
+      icon: <Rocket className="w-6 h-6" />,
+      title: "Scale Results",
+      description: "Grow your brand with proven UGC strategies",
+    },
+  ];
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.2,
+        delayChildren: 0.3,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.8, ease: "easeOut" as const },
+    },
+  };
+
   return (
-    <section className="py-32 px-6">
-      <div className="max-w-5xl mx-auto text-center">
+    <section className="py-32 px-6 relative overflow-hidden bg-gradient-to-b from-transparent via-(--color-bg)/50 to-transparent">
+      <div className="max-w-6xl mx-auto relative z-10">
+        {/* Bottom decorative element */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.9, y: 50 }}
-          whileInView={{ opacity: 1, scale: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.8, duration: 0.8 }}
+          className="mt-20 text-center"
         >
-          <h2 className="text-6xl md:text-7xl font-bold mb-8">meet</h2>
-          <h3 className="text-5xl md:text-6xl font-bold mb-12">
-            the UGC platform
-          </h3>
-          <p className="text-xl opacity-80 mb-12 max-w-3xl mx-auto leading-relaxed">
-            Where creativity meets opportunity. Join thousands of creators and
-            brands building authentic connections and driving real results.
+          <p className="text-sm text-(--color-fg) tracking-wider uppercase">
+            trusted by leading brands and creators
           </p>
-          <Button
-            size="lg"
-            asChild
-            className="bg-(--color-accent) hover:opacity-90 text-black font-semibold px-8 py-6 rounded-full text-lg group hover:scale-105 transition-all"
-          >
-            <a href="/signup">
-              Get Started Today
-              <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </a>
-          </Button>
+          <div className="mt-6 flex justify-center gap-8 opacity-50">
+            {[...Array(5)].map((_, i) => (
+              <motion.div
+                key={i}
+                animate={{ y: [0, -8, 0] }}
+                transition={{ duration: 3, delay: i * 0.2, repeat: Infinity }}
+                className="w-12 h-12 rounded-full bg-gradient-to-br from-(--color-accent) to-(--color-accent-2) opacity-20"
+              />
+            ))}
+          </div>
         </motion.div>
       </div>
     </section>

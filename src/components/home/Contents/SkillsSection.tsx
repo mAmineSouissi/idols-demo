@@ -1,30 +1,31 @@
 import { motion } from "framer-motion";
 import Carousel from "@/components/shared/Carousel";
+import { Users, BarChart3, TrendingUp, Sparkles } from "lucide-react";
 
 const skills = [
   {
     title: "Creator Matching",
     description:
       "AI-powered matching connects brands with the right creators based on audience fit, niche, engagement, and campaign goals. We continuously learn from performance data to improve pairing accuracy.",
-    icon: "👥",
+    icon: <Users className="w-8 h-8 text-(--color-accent)" />,
   },
   {
     title: "Campaign Management",
     description:
       "Plan, launch, and manage UGC campaigns end-to-end. Collaborate with creators, approve content, track deliverables, and monitor results in a single workflow.",
-    icon: "📊",
+    icon: <BarChart3 className="w-8 h-8 text-(--color-accent)" />,
   },
   {
     title: "Analytics & Insights",
     description:
       "Actionable analytics: CPM, CTR, conversions, audience demographics, sentiment analysis, and ROI tracking — all visualized to help you make data-informed decisions.",
-    icon: "📈",
+    icon: <TrendingUp className="w-8 h-8 text-(--color-accent)" />,
   },
   {
     title: "Content Strategy",
     description:
       "We craft creator-friendly briefs, tone of voice, platform-specific guidelines, and review checklists to ensure content quality and brand consistency across campaigns.",
-    icon: "✨",
+    icon: <Sparkles className="w-8 h-8 text-(--color-accent)" />,
   },
 ];
 
@@ -55,7 +56,7 @@ export const SkillsSection = () => {
               title: s.title,
               description: s.description,
               id: i + 1,
-              icon: <span className="text-2xl">{s.icon}</span>,
+              icon: s.icon,
             }))}
             baseWidth={720}
             autoplay
@@ -66,10 +67,6 @@ export const SkillsSection = () => {
           />
         </div>
       </div>
-
-      {/* Background decoration */}
-      {/* <div className="absolute top-1/4 left-0 w-64 h-64 bg-accent/5 rounded-full blur-[100px] pointer-events-none" /> */}
-      {/* <div className="absolute bottom-1/4 right-0 w-64 h-64 bg-accent-2/5 rounded-full blur-[100px] pointer-events-none" /> */}
     </section>
   );
 };
