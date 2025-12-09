@@ -8,7 +8,7 @@ import { HowSection } from "@/components/home/Contents/HowSection/HowSection";
 import { WeDoSection } from "@/components/home/Contents/WeDoSection/WeDoSection";
 import { AboutSection } from "@/components/home/Contents/AboutUs/AboutSection";
 import { SkillsSection } from "@/components/home/Contents/SkillsSection";
-import { PlatformSection } from "@/components/home/Contents/PlatformSection";
+import { PlatformSection } from "@/components/home/Contents/PlatformSection/PlatformSection";
 import { LogoSection } from "./Contents/LogoSection";
 
 export const HomePage = () => {
