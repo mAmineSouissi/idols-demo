@@ -28,7 +28,7 @@ export const Navbar = ({ className }: { className?: string }) => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
       className={cn(
-        "fixed top-0 inset-x-0 w-full z-50 bg-(--color-bg) shadow-[0_2px_20px_0_rgba(0,0,0,0.08)] dark:shadow-[0_2px_20px_0_rgba(0,0,0,0.3)]",
+        "fixed top-0 inset-x-0 w-full bg-bg/65 z-50 shadow-[0_2px_20px_0_rgba(0,0,0,0.08)] dark:shadow-[0_2px_20px_0_rgba(0,0,0,0.3)]",
         className
       )}
     >
@@ -45,7 +45,7 @@ export const Navbar = ({ className }: { className?: string }) => {
               whileHover={{ scale: 1.08, y: -2 }}
               whileTap={{ scale: 0.95 }}
               transition={{ type: "spring", stiffness: 400, damping: 17 }}
-              className="relative w-[220px] h-[70px] hover:opacity-90 transition-opacity"
+              className="relative w-[220px] h-[70px]"
             >
               {mounted && (
                 <Image
@@ -60,8 +60,8 @@ export const Navbar = ({ className }: { className?: string }) => {
           </Link>
 
           {/* Center menu with simple items - no dropdowns */}
-          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-            <nav className="flex items-center gap-1">
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 ">
+            <nav className="flex items-center gap-1 bg-opacity-30">
               <MenuItem
                 setActive={setActive}
                 active={active}
