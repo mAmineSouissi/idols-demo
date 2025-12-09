@@ -30,12 +30,20 @@ export const HeroSection = ({ onThemeChange }: HeroSectionProps) => {
         className="absolute inset-0 opacity-20 pointer-events-none"
         style={{ opacity, scale }}
       >
-        <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-(--color-accent) rounded-md blur-[150px] animate-pulse" />
+        <div className="absolute top-1/4 left-1/4 w-[380px] h-[380px] bg-(--color-accent) rounded-md blur-[120px] animate-pulse" />
         <div
-          className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-(--color-accent-2) rounded-md blur-[150px] animate-pulse"
+          className="absolute bottom-1/4 right-1/4 w-[380px] h-[380px] bg-(--color-accent-2) rounded-md blur-[120px] animate-pulse"
           style={{ animationDelay: "2s" }}
         />
       </motion.div>
+
+      {/* Photo overlay background */}
+      <div className="absolute inset-0 opacity-28 pointer-events-none">
+        <div className="absolute inset-0 bg-[url('/twoHands.png')] bg-size-[60%] bg-no-repeat bg-center blur-md" />
+        {/* Edge blur overlays to hide watermark without covering the center art */}
+        <div className="absolute left-0 top-0 h-full w-2/5 bg-gradient-to-r from-[var(--color-bg)] from-10% via-[var(--color-bg)] via-50% to-transparent" />
+        <div className="absolute right-0 top-0 h-full w-2/5 bg-gradient-to-l from-[var(--color-bg)] from-10% via-[var(--color-bg)] via-50% to-transparent" />
+      </div>
 
       <motion.div style={{ opacity, y }} className="text-center mb-10 z-10">
         <motion.h1
@@ -98,10 +106,7 @@ export const HeroSection = ({ onThemeChange }: HeroSectionProps) => {
             ease: "easeInOut",
           }}
         >
-          <ChevronDown
-            className="w-6 h-6 text-(--color-mute
-          ) group-hover:text-(--color-accent-2) transition-colors"
-          />
+          <ChevronDown className="w-6 h-6 text-(--color-muted) group-hover:text-(--color-accent-2) transition-colors" />
         </motion.div>
       </motion.div>
     </section>
