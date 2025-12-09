@@ -214,8 +214,8 @@ export default function Carousel({
               key={index}
               className={`relative shrink-0 flex flex-col ${
                 round
-                  ? "items-center justify-center text-center bg-(--color-panel) border-0"
-                  : "items-start justify-between bg-(--color-panel)  rounded-lg"
+                  ? "items-center justify-center text-center bg-(--color-panel)"
+                  : "items-start justify-between bg-(--color-panel) rounded-md"
               } overflow-hidden cursor-grab active:cursor-grabbing`}
               style={{
                 width: itemWidth,
@@ -225,18 +225,16 @@ export default function Carousel({
               }}
               transition={effectiveTransition}
             >
-              <div className={`${round ? "p-0 m-0" : "mb-4 p-5"}`}>
-                <span className="flex h-[28px] w-[28px] items-center justify-center rounded-full bg-(--color-bg)">
+              <div className={`${round ? "p-0 m-0" : "p-5"}`}>
+                <span className="items-center justify-center">
                   {item.icon}
                 </span>
               </div>
-              <div className="p-5">
-                <div className="mb-1 font-black text-lg text-(--color-fg)">
+              <div className="p-4">
+                <div className="mb-1 text-xl text-[1.2rem] text-fg">
                   {item.title}
                 </div>
-                <p className="text-sm text-(--color-fg)/80">
-                  {item.description}
-                </p>
+                <p className="text-sm text-fg/60">{item.description}</p>
               </div>
             </motion.div>
           );
@@ -244,16 +242,16 @@ export default function Carousel({
       </motion.div>
       <div
         className={`flex w-full justify-center ${
-          round ? "absolute z-20 bottom-12 left-1/2 -translate-x-1/2" : ""
+          round ? "absolute z-20 bottom-8 left-1/2 -translate-x-1/2" : ""
         }`}
       >
-        <div className="mt-4 flex w-[150px] justify-between px-8">
+        <div className="mt-4 flex w-[6.5rem] justify-between px-2">
           {items.map((_, index) => (
             <motion.div
               key={index}
               className={`h-2 w-2 rounded-full cursor-pointer transition-colors duration-150 ${
                 currentIndex % items.length === index
-                  ? "bg-(--color-accent)"
+                  ? "bg-primary"
                   : "bg-(--color-border)"
               }`}
               animate={{

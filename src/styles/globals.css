@@ -242,6 +242,43 @@ body {
     letter-spacing: var(--tracking-normal);
   }
 
+  /* Scrollbar: hidden by default, softly appears while scrolling */
+  :root {
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+  }
+
+  body {
+    scrollbar-gutter: stable both-edges;
+  }
+
+  /* WebKit scrollbars */
+  body::-webkit-scrollbar {
+    width: 12px;
+    background: transparent;
+  }
+
+  body::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  body::-webkit-scrollbar-thumb {
+    background-color: transparent;
+    border-radius: 9999px;
+    border: 3px solid transparent;
+    transition: background-color 0.25s ease, border-color 0.25s ease;
+  }
+
+  /* Visible state while scrolling */
+  body.scrollbar-visible {
+    scrollbar-color: color-mix(in srgb, var(--fg) 40%, transparent) transparent;
+  }
+
+  body.scrollbar-visible::-webkit-scrollbar-thumb {
+    background-color: color-mix(in srgb, var(--fg) 32%, transparent);
+    border-color: color-mix(in srgb, var(--fg) 12%, transparent);
+  }
+
   /* Smooth scroll behavior */
   html {
     scroll-behavior: smooth;
