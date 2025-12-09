@@ -3,7 +3,7 @@ export const Footer = () => {
     <footer className="py-12 px-6 border-t border-(--color-border) backdrop-blur-sm">
       <div className="max-w-7xl mx-auto text-center">
         <p className="text-(--color-muted-fg) text-sm">
-          © 2024 idols. Connecting creators and brands worldwide.
+          © 2025 idols. Connecting creators and brands worldwide.
         </p>
       </div>
     </footer>
