@@ -2,6 +2,7 @@
 import React from "react";
 import { motion } from "motion/react";
 import type { Transition } from "motion/react";
+import { Button } from "./button";
 
 const transition: Transition = {
   type: "spring",
@@ -28,13 +29,10 @@ export const MenuItem = ({
   // Simple mode: just a clickable link without dropdown
   if (simple) {
     return (
-      <motion.button
-        onClick={() => setActive(item)}
-        onHoverStart={() => setActive(item)}
+      <Button
         className="relative px-5 py-2.5 text-sm font-medium text-black/70 dark:text-white hover:text-black dark:hover:text-white transition-colors duration-200"
-        whileHover={{ scale: 1.08, y: -2 }}
-        whileTap={{ scale: 0.95 }}
-        transition={{ type: "spring", stiffness: 400, damping: 17 }}
+        onClick={() => setActive(item)}
+        variant={"link"}
       >
         <span className="relative z-10">{item}</span>
         {active === item && (
@@ -47,7 +45,7 @@ export const MenuItem = ({
             transition={{ type: "spring", stiffness: 400, damping: 25 }}
           />
         )}
-      </motion.button>
+      </Button>
     );
   }
 

@@ -11,7 +11,7 @@ export default function Layout({ children, className }: LayoutProps) {
   return (
     <div
       className={cn(
-        "min-h-screen relative overflow-hidden bg-(--color-bg) text-(--color-fg) transition-colors duration-500",
+        "min-h-screen relative overflow-hidden bg-(--color-bg) text-(--color-fg)",
         className
       )}
     >
