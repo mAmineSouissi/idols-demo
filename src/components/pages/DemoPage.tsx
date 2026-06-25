@@ -94,8 +94,9 @@ export default function DemoPage() {
   const router = useRouter();
 
   function enter(role: "brand" | "creator") {
-    localStorage.setItem("icons-session", JSON.stringify({ role }));
-    router.push("/dashboard");
+    // The dashboard is auth-gated — send the visitor to log in / sign up,
+    // pre-selecting the account type they picked.
+    router.push(`/login?as=${role}`);
   }
 
   return (

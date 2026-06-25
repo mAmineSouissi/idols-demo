@@ -7,6 +7,7 @@ import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { cn } from "@/lib/utils";
 import { IconsLogo, StarMark } from "@/components/shared/IconsLogo";
+import { useAuthStore } from "@/stores/auth.store";
 
 function ThemeToggle() {
   const { theme, setTheme } = useTheme();
@@ -64,12 +65,13 @@ const Header = () => {
   const headerRef = React.useRef<HTMLElement>(null);
   const [scrolled, setScrolled] = React.useState(false);
   const [mobileOpen, setMobileOpen] = React.useState(false);
-  const [loggedIn, setLoggedIn] = React.useState(false);
 
-  // Client-only: check session after mount to avoid SSR mismatch
-  React.useEffect(() => {
-    requestAnimationFrame(() => setLoggedIn(!!localStorage.getItem("icons-session")));
-  }, []);
+  // Auth state from the NextAuth-backed store. `mounted` guards against an
+  // SSR/CSR mismatch (the persisted store hydrates on the client).
+  const authStatus = useAuthStore((s) => s.status);
+  const [mounted, setMounted] = React.useState(false);
+  React.useEffect(() => setMounted(true), []);
+  const loggedIn = mounted && authStatus === "authenticated";
 
   React.useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 32);

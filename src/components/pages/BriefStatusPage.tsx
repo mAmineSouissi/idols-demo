@@ -293,8 +293,7 @@ export default function BriefStatusPage() {
   const router = useRouter();
 
   function goToDashboard() {
-    localStorage.setItem("icons-session", JSON.stringify({ role: "brand" }));
-    router.push("/dashboard?as=brand");
+    router.push("/dashboard");
   }
 
   useGSAP(() => {

@@ -245,8 +245,7 @@ export default function CreatorStatusPage() {
   }, { scope: ref });
 
   function goToDashboard() {
-    localStorage.setItem("icons-session", JSON.stringify({ role: "creator" }));
-    router.push("/dashboard?as=creator");
+    router.push("/dashboard");
   }
 
   return (

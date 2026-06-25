@@ -12,7 +12,6 @@ import {
   CheckCircle2, Clock, Zap, Upload, Check, TrendingUp, Send,
   ExternalLink, CreditCard, Mail, Smartphone, Globe, Star, UserCheck,
   MessageSquare, Paperclip, ArrowLeft,
-  MessageSquare, Paperclip, ArrowLeft,
 } from "lucide-react";
 import { Sparkle } from "@/components/ui/Sparkle";
 import { ease, dur, stagger } from "@/lib/motion";
@@ -26,16 +25,9 @@ import {
   EmptyState,
   InlineToast,
 } from "@/components/shared/primitives";
-import {
-  MonoLabel,
-  Avatar,
-  Chip,
-  FileChip,
-  IconButton,
-  StickerCard,
-  EmptyState,
-  InlineToast,
-} from "@/components/shared/primitives";
+import { useAuthStore } from "@/stores/auth.store";
+import { useAuthActions } from "@/hooks/useAuthActions";
+import { useCurrentUser, type CurrentUserView } from "@/hooks/useCurrentUser";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
@@ -45,12 +37,9 @@ gsap.registerPlugin(ScrollTrigger, useGSAP);
 
 const PAGE_STYLES = `
   /* Root layout — viewport-locked so sidebar never scrolls */
-  /* Root layout — viewport-locked so sidebar never scrolls */
   .db-root {
     display: grid;
     grid-template-columns: 1fr;
-    height: 100svh;
-    overflow: hidden;
     height: 100svh;
     overflow: hidden;
     background: var(--color-bg);
@@ -58,7 +47,6 @@ const PAGE_STYLES = `
   }
   @media (min-width: 1024px) {
     .db-root { grid-template-columns: 272px 1fr; }
-    .db-root[data-collapsed="true"] { grid-template-columns: 64px 1fr; }
     .db-root[data-collapsed="true"] { grid-template-columns: 64px 1fr; }
   }
 
@@ -70,45 +58,10 @@ const PAGE_STYLES = `
     height: 100svh;
     overflow-y: auto;
     overflow-x: hidden;
-    overflow-x: hidden;
     background: var(--color-bg);
     transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
   @media (min-width: 1024px) {
-    .db-sidebar { display: flex; width: 272px; }
-    .db-root[data-collapsed="true"] .db-sidebar { width: 64px; }
-  }
-
-  /* Collapsed sidebar overrides */
-  .db-root[data-collapsed="true"] .db-sidebar-label { display: none; }
-  .db-root[data-collapsed="true"] .db-nav-item {
-    justify-content: center; padding: 0.7rem; gap: 0;
-  }
-  .db-root[data-collapsed="true"] .db-nav-item .db-nav-icon { margin: 0; opacity: 0.8; }
-  .db-root[data-collapsed="true"] .db-sidebar-logo { justify-content: center; padding: 0.75rem; overflow: hidden; }
-  .db-root[data-collapsed="true"] .db-sidebar-logo .db-logo-full { display: none; }
-  .db-root[data-collapsed="true"] .db-sidebar-logo .db-logo-mark { display: block; }
-  .db-root[data-collapsed="true"] .db-sidebar-user { justify-content: center; padding: 0.75rem; }
-  .db-root[data-collapsed="true"] .db-sidebar-user .db-user-details { display: none; }
-  .db-root[data-collapsed="true"] .db-sidebar-user .sticker { padding: 0; background: transparent; border: none; box-shadow: none; }
-  .db-root[data-collapsed="true"] .db-sidebar-nav { padding: 0.75rem 0.5rem; }
-  .db-root[data-collapsed="true"] .db-sidebar-signout { padding: 0.75rem 0.5rem; }
-
-  /* Scrollable main column */
-  .db-main {
-    overflow-y: auto;
-    overflow-x: hidden;
-    height: 100svh;
-    display: flex;
-    flex-direction: column;
-  }
-
-  /* Unified sidebar button: hamburger on mobile, chevron on desktop */
-  .db-sidebar-btn-chevron { display: none; }
-  @media (min-width: 1024px) {
-    .db-sidebar-btn-menu { display: none; }
-    .db-sidebar-btn-chevron { display: block; }
     .db-sidebar { display: flex; width: 272px; }
     .db-root[data-collapsed="true"] .db-sidebar { width: 64px; }
   }
@@ -552,176 +505,6 @@ const PAGE_STYLES = `
     .db-chat-layout[data-thread-open="false"] .db-chat-empty { display: none; }
     .db-chat-bubble { max-width: 85%; }
   }
-
-  /* ── Messages / Chat ── */
-  .db-chat-layout {
-    display: flex; flex-direction: column; flex: 1; min-height: 0;
-  }
-  @media (min-width: 768px) {
-    .db-chat-layout { flex-direction: row; }
-  }
-
-  .db-chat-threads {
-    border-bottom: 2px solid var(--color-fg);
-    overflow-y: auto; flex-shrink: 0;
-  }
-  @media (min-width: 768px) {
-    .db-chat-threads {
-      width: 340px; min-width: 280px; border-bottom: none;
-      border-right: 2px solid var(--color-fg); height: 100%;
-    }
-  }
-  .db-chat-thread {
-    display: flex; align-items: center; gap: 0.875rem;
-    padding: 1rem 1.25rem; border-bottom: 1px solid var(--color-border);
-    cursor: pointer; transition: background 0.12s;
-    border: none; background: none; width: 100%; text-align: left;
-    color: inherit; font: inherit;
-  }
-  .db-chat-thread:hover { background: var(--color-panel); }
-  .db-chat-thread:focus-visible {
-    outline: 2px solid var(--color-accent); outline-offset: -2px;
-  }
-  .db-chat-thread[data-active="true"] { background: var(--color-panel); }
-
-  .db-chat-avatar {
-    width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
-    border: 2px solid var(--color-fg); display: flex; align-items: center;
-    justify-content: center; font-family: var(--font-display);
-    font-style: italic; font-size: 1rem; font-weight: 700;
-    background: var(--color-accent);
-  }
-
-  .db-chat-view {
-    flex: 1; display: flex; flex-direction: column;
-    min-height: 0; position: relative;
-  }
-
-  .db-chat-header {
-    padding: 0.75rem 1.25rem; border-bottom: 2px solid var(--color-fg);
-    display: flex; align-items: center; gap: 1rem; flex-shrink: 0;
-    background: var(--color-bg);
-  }
-  .db-chat-back { display: inline-flex; }
-  @media (min-width: 768px) { .db-chat-back { display: none; } }
-
-  /* Milestone strip */
-  .db-chat-milestones {
-    display: flex; align-items: center; gap: 0; padding: 0.75rem 1.25rem;
-    border-bottom: 1px solid var(--color-border); overflow-x: auto;
-    flex-shrink: 0; background: var(--color-bg);
-  }
-  .db-chat-ms-dot {
-    width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
-    border: 2px solid var(--color-fg); position: relative; z-index: 1;
-  }
-  .db-chat-ms-dot[data-done="true"] { background: var(--color-accent); border-color: var(--color-accent); }
-  .db-chat-ms-dot[data-active="true"] { background: var(--color-fg); animation: db-pulse 2s ease-in-out infinite; }
-  .db-chat-ms-line {
-    width: 24px; height: 2px; background: var(--color-border); flex-shrink: 0;
-  }
-  .db-chat-ms-line[data-done="true"] { background: var(--color-accent); }
-  .db-chat-ms-label {
-    font-family: var(--font-mono); font-size: 9px; text-transform: uppercase;
-    letter-spacing: 0.15em; opacity: 0.5; white-space: nowrap; margin-left: 0.75rem;
-  }
-  .db-chat-ms-dot[data-active="true"] + .db-chat-ms-label { opacity: 1; font-weight: 600; }
-
-  .db-chat-messages {
-    flex: 1; overflow-y: auto; padding: 1.25rem; display: flex;
-    flex-direction: column; gap: 0.5rem;
-  }
-
-  .db-chat-bubble {
-    max-width: 75%; padding: 0.65rem 0.9rem; font-size: 13px;
-    line-height: 1.55; border: 1.5px solid var(--color-fg);
-    position: relative; word-break: break-word;
-  }
-  .db-chat-bubble[data-self="true"] {
-    background: var(--color-fg); color: var(--color-bg);
-    border-radius: var(--radius-md) var(--radius-md) 4px var(--radius-md); align-self: flex-end;
-  }
-  .db-chat-bubble[data-self="false"] {
-    background: var(--color-bg);
-    border-radius: var(--radius-md) var(--radius-md) var(--radius-md) 4px; align-self: flex-start;
-  }
-
-  .db-chat-system {
-    display: flex; align-items: center; gap: 0.5rem;
-    justify-content: center; padding: 0.65rem 1rem; margin: 0.5rem 0;
-    font-family: var(--font-mono); font-size: 10px;
-    letter-spacing: 0.16em; text-transform: uppercase;
-    opacity: 0.55;
-  }
-
-  .db-chat-milestone-card {
-    border: 2px solid var(--color-fg); border-radius: var(--radius-md);
-    padding: 1rem 1.25rem; background: var(--color-panel);
-    box-shadow: 3px 3px 0 0 var(--color-accent);
-    margin: 0.5rem 0; align-self: stretch;
-  }
-
-  .db-chat-file-chip {
-    display: inline-flex; align-items: center; gap: 0.4rem;
-    padding: 0.35rem 0.65rem; border-radius: var(--radius-sm);
-    background: var(--color-panel); border: 1.5px solid var(--color-border);
-    font-family: var(--font-mono); font-size: 10px;
-    letter-spacing: 0.08em; transition: border-color 0.15s;
-    margin-top: 0.4rem;
-  }
-  .db-chat-file-chip:hover { border-color: var(--color-fg); }
-
-  .db-chat-composer {
-    display: flex; align-items: flex-end; gap: 0.5rem;
-    padding: 0.75rem 1.25rem; border-top: 2px solid var(--color-fg);
-    background: var(--color-bg); flex-shrink: 0;
-  }
-  .db-chat-input {
-    flex: 1; resize: none; border: 2px solid var(--color-border);
-    border-radius: 10px; padding: 0.6rem 0.85rem;
-    font-family: var(--font-mono); font-size: 12px;
-    background: var(--color-bg); color: var(--color-fg);
-    max-height: 100px; min-height: 38px; line-height: 1.5;
-  }
-  .db-chat-input:focus { outline: none; border-color: var(--color-fg); }
-  .db-chat-input::placeholder { opacity: 0.4; }
-
-  .db-chat-send {
-    width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
-    border: 2px solid var(--color-fg); display: flex;
-    align-items: center; justify-content: center;
-    background: var(--color-fg); color: var(--color-bg);
-    cursor: pointer; transition: opacity 0.12s;
-  }
-  .db-chat-send:hover { opacity: 0.85; }
-
-  .db-chat-badge {
-    display: inline-flex; align-items: center; justify-content: center;
-    min-width: 18px; height: 18px; border-radius: 999px;
-    background: var(--color-accent); color: var(--color-fg);
-    font-family: var(--font-mono); font-size: 9px;
-    font-weight: 700; padding: 0 5px;
-  }
-
-  .db-chat-empty {
-    flex: 1; display: none; flex-direction: column;
-    align-items: center; justify-content: center; gap: 1rem;
-    padding: 3rem; opacity: 0.5;
-  }
-  @media (min-width: 768px) {
-    .db-chat-empty { display: flex; }
-  }
-
-  /* Toast feedback handled by <InlineToast> primitive */
-
-  /* Mobile: when a thread is open, hide list and show chat full-screen */
-  @media (max-width: 767px) {
-    .db-chat-layout[data-thread-open="true"] .db-chat-threads { display: none; }
-    .db-chat-layout[data-thread-open="true"] .db-chat-view { height: 100%; }
-    .db-chat-layout[data-thread-open="false"] .db-chat-view { display: none; }
-    .db-chat-layout[data-thread-open="false"] .db-chat-empty { display: none; }
-    .db-chat-bubble { max-width: 85%; }
-  }
 `;
 
 /* ────────────────────────────────────────────────────────────── */
@@ -917,18 +700,17 @@ function ActivityIcon({ type }: { type: string }) {
 
 /* ── Sidebar ──────────────────────────────────────────────────── */
 
-function SidebarContent({ mode, active, onNav, onClose, onSignOut }: {
+function SidebarContent({ mode, active, onNav, onClose, onSignOut, user }: {
   mode: "creator" | "brand";
   active: string;
   onNav: (s: string) => void;
   onClose?: () => void;
   onSignOut: () => void;
+  user: CurrentUserView | null;
 }) {
-  const data = mode === "creator" ? creatorData : brandData;
   const creatorNav = [
     { id: "overview",  label: "Overview",  icon: LayoutDashboard },
     { id: "campaigns", label: "Campaigns", icon: FileText        },
-    { id: "messages",  label: "Messages",  icon: MessageSquare   },
     { id: "messages",  label: "Messages",  icon: MessageSquare   },
     { id: "earnings",  label: "Earnings",  icon: DollarSign      },
     { id: "profile",   label: "Profile",   icon: Users           },
@@ -937,7 +719,6 @@ function SidebarContent({ mode, active, onNav, onClose, onSignOut }: {
   const brandNav = [
     { id: "overview",  label: "Overview",  icon: LayoutDashboard },
     { id: "campaigns", label: "Campaigns", icon: FileText        },
-    { id: "messages",  label: "Messages",  icon: MessageSquare   },
     { id: "messages",  label: "Messages",  icon: MessageSquare   },
     { id: "creators",  label: "Creators",  icon: Users           },
     { id: "analytics", label: "Analytics", icon: BarChart2       },
@@ -952,14 +733,9 @@ function SidebarContent({ mode, active, onNav, onClose, onSignOut }: {
         <Link href="/" className="font-display italic leading-none tracking-tight">
           <span className="db-logo-full text-3xl">Icons.</span>
           <span className="db-logo-mark text-2xl" style={{ display: "none" }}>I.</span>
-      <div className="db-sidebar-logo flex items-center justify-between px-6 py-5 border-b-2 border-(--color-fg)">
-        <Link href="/" className="font-display italic leading-none tracking-tight">
-          <span className="db-logo-full text-3xl">Icons.</span>
-          <span className="db-logo-mark text-2xl" style={{ display: "none" }}>I.</span>
         </Link>
         {onClose && (
           <button onClick={onClose}
-            className="db-sidebar-label inline-flex items-center justify-center w-8 h-8 rounded-full border-2 border-(--color-fg) hover:bg-(--color-fg) hover:text-(--color-bg) transition-colors">
             className="db-sidebar-label inline-flex items-center justify-center w-8 h-8 rounded-full border-2 border-(--color-fg) hover:bg-(--color-fg) hover:text-(--color-bg) transition-colors">
             <X className="w-3.5 h-3.5" />
           </button>
@@ -968,23 +744,23 @@ function SidebarContent({ mode, active, onNav, onClose, onSignOut }: {
 
       {/* User card */}
       <div className="db-sidebar-user px-4 py-4 border-b-2 border-(--color-fg)">
-      <div className="db-sidebar-user px-4 py-4 border-b-2 border-(--color-fg)">
         <div className="sticker flex items-center gap-3 p-3" data-tone="cream" style={{ boxShadow: "none" }}>
-          <div className="db-ring w-10 h-10 rounded-full shrink-0 flex items-center justify-center font-display italic text-lg border-2 border-(--color-fg)"
+          <div className="db-ring w-10 h-10 rounded-full shrink-0 flex items-center justify-center font-display italic text-lg border-2 border-(--color-fg) overflow-hidden"
             style={{ background: "var(--color-accent)", color: "var(--color-fg)" }}>
-            {data.user.avatar}
+            {user?.avatarUrl ? (
+              <img src={user.avatarUrl} alt={user.name} className="w-full h-full object-cover" />
+            ) : (
+              user?.avatar ?? "…"
+            )}
           </div>
           <div className="db-user-details min-w-0">
-          <div className="db-user-details min-w-0">
-            <p className="font-display italic text-base leading-tight truncate">{data.user.name}</p>
-            <p className="font-mono font-semibold text-[9px] uppercase tracking-[0.22em] opacity-65 mt-0.5">{data.user.tier}</p>
+            <p className="font-display italic text-base leading-tight truncate">{user?.name ?? "Loading…"}</p>
+            <p className="font-mono font-semibold text-[9px] uppercase tracking-[0.22em] opacity-65 mt-0.5">{user?.tier ?? ""}</p>
           </div>
         </div>
       </div>
 
       {/* Nav */}
-      <nav className="db-sidebar-nav flex-1 px-3 py-5 flex flex-col gap-0.5">
-        <p className="db-sidebar-label font-mono font-semibold text-[9px] uppercase tracking-[0.32em] opacity-60 px-3 pb-3">Navigation</p>
       <nav className="db-sidebar-nav flex-1 px-3 py-5 flex flex-col gap-0.5">
         <p className="db-sidebar-label font-mono font-semibold text-[9px] uppercase tracking-[0.32em] opacity-60 px-3 pb-3">Navigation</p>
         {nav.map(({ id, label, icon: Icon }) => (
@@ -994,19 +770,11 @@ function SidebarContent({ mode, active, onNav, onClose, onSignOut }: {
             title={label}>
             <Icon className="db-nav-icon w-4 h-4 opacity-55 shrink-0" />
             <span className="db-sidebar-label">{label}</span>
-            onClick={() => { onNav(id); onClose?.(); }}
-            title={label}>
-            <Icon className="db-nav-icon w-4 h-4 opacity-55 shrink-0" />
-            <span className="db-sidebar-label">{label}</span>
           </button>
         ))}
       </nav>
 
       {/* Sign out */}
-      <div className="db-sidebar-signout px-3 py-4 border-t-2 border-(--color-fg)">
-        <button onClick={onSignOut} className="db-nav-item w-full text-left" title="Sign out">
-          <LogOut className="db-nav-icon w-4 h-4 opacity-55 shrink-0" />
-          <span className="db-sidebar-label">Sign out</span>
       <div className="db-sidebar-signout px-3 py-4 border-t-2 border-(--color-fg)">
         <button onClick={onSignOut} className="db-nav-item w-full text-left" title="Sign out">
           <LogOut className="db-nav-icon w-4 h-4 opacity-55 shrink-0" />
@@ -1383,16 +1151,20 @@ function BrandAnalyticsPanel({ data }: { data: typeof brandData }) {
 }
 
 /* ── Creator Profile Panel ───────────────────────────────────── */
-function CreatorProfilePanel({ data }: { data: typeof creatorData }) {
+function CreatorProfilePanel({ user }: { user: CurrentUserView | null }) {
+  const platforms = Object.keys(user?.socials ?? {})
+    .filter((k) => k !== "website" && (user?.socials?.[k]))
+    .map((k) => k.charAt(0).toUpperCase() + k.slice(1))
+    .join(" · ");
   const fields = [
-    { label: "Display name",  value: data.user.name                       },
-    { label: "Handle",        value: data.user.handle                      },
-    { label: "Account type",  value: data.user.tier                        },
-    { label: "Niche",         value: "Books & Culture"                     },
-    { label: "Platforms",     value: "TikTok · Instagram"                  },
-    { label: "Email",         value: "maya.r@example.com"                  },
+    { label: "Display name",  value: user?.name ?? "—"                     },
+    { label: "Handle",        value: user?.handle ?? "—"                   },
+    { label: "Account type",  value: user?.tier ?? "—"                     },
+    { label: "Niche",         value: user?.bio || "—"                      },
+    { label: "Platforms",     value: platforms || "—"                      },
+    { label: "Email",         value: user?.email ?? "—"                    },
     { label: "Payout method", value: "PayPal — verified"                   },
-    { label: "Location",      value: "Brooklyn, NY"                        },
+    { label: "Location",      value: "—"                                   },
   ];
   return (
     <div className="db-tab-section">
@@ -1408,12 +1180,16 @@ function CreatorProfilePanel({ data }: { data: typeof creatorData }) {
         style={{ boxShadow: "5px 5px 0 0 var(--color-fg)" }}>
         {/* Hero strip */}
         <div className="db-profile-hero" style={{ background: "var(--color-panel)" }}>
-          <div className="db-profile-avatar" style={{ color: "var(--color-fg)" }}>
-            {data.user.avatar}
+          <div className="db-profile-avatar overflow-hidden" style={{ color: "var(--color-fg)" }}>
+            {user?.avatarUrl ? (
+              <img src={user.avatarUrl} alt={user.name} className="w-full h-full object-cover" />
+            ) : (
+              user?.avatar ?? "…"
+            )}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="font-display italic text-2xl leading-tight">{data.user.name}</p>
-            <p className="font-mono text-[11px] opacity-55 mt-0.5">{data.user.handle}</p>
+            <p className="font-display italic text-2xl leading-tight">{user?.name ?? "Loading…"}</p>
+            <p className="font-mono text-[11px] opacity-55 mt-0.5">{user?.handle ?? ""}</p>
             <div className="flex items-center gap-2 mt-3 flex-wrap">
               <span className="inline-flex items-center gap-1 font-mono text-[9px] uppercase tracking-[0.18em] px-2.5 py-1 rounded-full"
                 style={{ background: "color-mix(in srgb, var(--color-accent) 20%, transparent)", color: "var(--color-accent)", border: "1px solid var(--color-accent)" }}>
@@ -1424,7 +1200,7 @@ function CreatorProfilePanel({ data }: { data: typeof creatorData }) {
               </span>
             </div>
           </div>
-          <Link href="/talents/mayareads"
+          <Link href={user?.handle?.startsWith("@") ? `/talents/${user.handle.slice(1)}` : "/talents"}
             className="hidden sm:inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.18em] px-3 py-1.5 rounded-full border-2 border-(--color-fg) hover:bg-(--color-fg) hover:text-(--color-bg) transition-colors shrink-0">
             <ExternalLink className="w-3 h-3" />
             Public profile
@@ -1996,6 +1772,11 @@ export default function DashboardPage() {
   const router  = useRouter();
   const rootRef = React.useRef<HTMLDivElement>(null);
 
+  const authStatus = useAuthStore((s) => s.status);
+  const authUser   = useAuthStore((s) => s.user);
+  const currentUser = useCurrentUser();
+  const { logout } = useAuthActions();
+
   const [authed,          setAuthed]          = React.useState(false);
   const [mode,            setMode]            = React.useState<"creator" | "brand">("creator");
   const [activeNav,       setActiveNav]       = React.useState("overview");
@@ -2034,45 +1815,29 @@ export default function DashboardPage() {
     return () => document.removeEventListener("mousedown", handle);
   }, [bellOpen]);
 
-  // Auth gate — redirect to /login if no session exists; read role from session
+  // Auth gate — driven by the NextAuth-backed Zustand store.
+  // Redirect to /login once we know the user is unauthenticated.
   React.useEffect(() => {
-    const raw = localStorage.getItem("icons-session");
-    if (!raw) {
+    if (authStatus === "loading") return;
+    if (authStatus === "unauthenticated" || !authUser) {
       router.replace("/login");
-    } else {
-      requestAnimationFrame(() => {
-        try {
-          const session = JSON.parse(raw) as { role?: string };
-          setMode(session.role === "brand" ? "brand" : "creator");
-        } catch {
-          setMode("creator");
-        }
-        setAuthed(true);
-      });
-      requestAnimationFrame(() => {
-        try {
-          const session = JSON.parse(raw) as { role?: string };
-          setMode(session.role === "brand" ? "brand" : "creator");
-        } catch {
-          setMode("creator");
-        }
-        setAuthed(true);
-      });
+      return;
     }
-  }, [router]);
+    setMode(authUser.role === "brand" ? "brand" : "creator");
+    setAuthed(true);
+  }, [authStatus, authUser, router]);
 
-  // Sign out — clear session and return to login
-  function handleSignOut() {
-    localStorage.removeItem("icons-session");
+  // Sign out — clear the session (NextAuth + store) and return to login.
+  async function handleSignOut() {
+    await logout();
     router.push("/login");
   }
 
-  // Demo: instantly switch role without signing out
+  // Demo: view the dashboard as the other role without changing the account.
+  // (Account role is owned by the backend; this only swaps the local view.)
   function handleSwitchRole(next: "creator" | "brand") {
     if (next === mode) return;
-    localStorage.setItem("icons-session", JSON.stringify({ role: next }));
     setMode(next);
-    navigateTab("overview");
     navigateTab("overview");
   }
 
@@ -2181,13 +1946,11 @@ export default function DashboardPage() {
 
   return (
     <div ref={rootRef} className="db-root" data-collapsed={sidebarCollapsed ? "true" : "false"}>
-    <div ref={rootRef} className="db-root" data-collapsed={sidebarCollapsed ? "true" : "false"}>
       <style>{PAGE_STYLES}</style>
 
       {/* ── Desktop sidebar ─────────────────────────────────────── */}
       <aside className="db-sidebar">
-        <SidebarContent mode={mode} active={activeNav} onNav={navigateTab} onSignOut={handleSignOut} />
-        <SidebarContent mode={mode} active={activeNav} onNav={navigateTab} onSignOut={handleSignOut} />
+        <SidebarContent mode={mode} active={activeNav} onNav={navigateTab} onSignOut={handleSignOut} user={currentUser} />
       </aside>
 
       {/* ── Mobile overlay ──────────────────────────────────────── */}
@@ -2195,15 +1958,12 @@ export default function DashboardPage() {
         <div className="db-sidebar-mobile">
           <div className="w-72 max-w-[85vw] flex flex-col h-full overflow-y-auto border-r-2 border-(--color-fg)"
             style={{ background: "var(--color-bg)" }}>
-            <SidebarContent mode={mode} active={activeNav} onNav={navigateTab} onClose={() => setMobileOpen(false)} onSignOut={handleSignOut} />
-            <SidebarContent mode={mode} active={activeNav} onNav={navigateTab} onClose={() => setMobileOpen(false)} onSignOut={handleSignOut} />
+            <SidebarContent mode={mode} active={activeNav} onNav={navigateTab} onClose={() => setMobileOpen(false)} onSignOut={handleSignOut} user={currentUser} />
           </div>
           <div className="flex-1 bg-black/50" onClick={() => setMobileOpen(false)} />
         </div>
       )}
 
-      {/* ── Main column (this is the scroll container) ──────────── */}
-      <div className="db-main" data-lenis-prevent style={activeNav === "messages" ? { overflow: "hidden" } : undefined}>
       {/* ── Main column (this is the scroll container) ──────────── */}
       <div className="db-main" data-lenis-prevent style={activeNav === "messages" ? { overflow: "hidden" } : undefined}>
 
@@ -2212,17 +1972,7 @@ export default function DashboardPage() {
           style={{ background: "var(--color-bg)" }}>
           <div className="flex items-center gap-4">
             {/* Sidebar toggle — opens mobile overlay on small screens, collapses sidebar on desktop */}
-            {/* Sidebar toggle — opens mobile overlay on small screens, collapses sidebar on desktop */}
             <button
-              className="db-sidebar-btn inline-flex items-center justify-center w-9 h-9 rounded-full border-2 border-(--color-fg) hover:bg-(--color-fg) hover:text-(--color-bg) transition-colors"
-              onClick={() => {
-                // < 1024px → mobile overlay; >= 1024px → collapse/expand
-                if (window.innerWidth < 1024) setMobileOpen(true);
-                else setSidebarCollapsed(!sidebarCollapsed);
-              }}
-              aria-label={sidebarCollapsed ? "Show sidebar" : "Hide sidebar"}>
-              <Menu className="w-4 h-4 db-sidebar-btn-menu" />
-              <ChevronRight className="w-4 h-4 db-sidebar-btn-chevron" style={{ transform: sidebarCollapsed ? "none" : "rotate(180deg)", transition: "transform 0.3s" }} />
               className="db-sidebar-btn inline-flex items-center justify-center w-9 h-9 rounded-full border-2 border-(--color-fg) hover:bg-(--color-fg) hover:text-(--color-bg) transition-colors"
               onClick={() => {
                 // < 1024px → mobile overlay; >= 1024px → collapse/expand
@@ -2332,12 +2082,6 @@ export default function DashboardPage() {
         {/* ── Overview tab (welcome + stats + priority content) ─ */}
         {activeNav === "overview" && (<>
         {/* Welcome section */}
-        {/* ── Content ─────────────────────────────────────────── */}
-        <main className="flex-1" style={activeNav === "messages" ? { display: "flex", flexDirection: "column", minHeight: 0, overflow: "hidden" } : undefined}>
-
-        {/* ── Overview tab (welcome + stats + priority content) ─ */}
-        {activeNav === "overview" && (<>
-        {/* Welcome section */}
         <section className="relative px-6 md:px-10 pt-10 pb-10 border-b-2 border-(--color-fg) bracket-frame dot-grid"
           style={{ background: "var(--color-bg)" }}>
           <div aria-hidden
@@ -2349,7 +2093,7 @@ export default function DashboardPage() {
             <p className="font-mono font-semibold text-[11px] tracking-[0.32em] uppercase opacity-70 mb-5">{today}</p>
             <h1 className="font-display italic leading-[0.9] tracking-[-0.03em] mb-6"
               style={{ fontSize: "clamp(2.4rem,6vw,5.5rem)" }}>
-              {[greeting + ",", data.user.name.split(" ")[0] + "."].map((word, i) => (
+              {[greeting + ",", (currentUser?.firstName ?? "there") + "."].map((word, i) => (
                 <span key={i} className="db-greet-word inline-block mr-[0.22em] last:mr-0 relative">
                   {i === 1 && (
                     <span aria-hidden className="absolute inset-x-0 bottom-[0.06em] h-[0.22em] rounded-sm -z-10"
@@ -2376,7 +2120,6 @@ export default function DashboardPage() {
         </section>
 
         {/* Stats strip */}
-        {/* Stats strip */}
         <section style={{ background: "var(--color-fg)", color: "var(--color-bg)" }}>
           <div className="db-stats-grid max-w-7xl mx-auto">
             {data.stats.map((s) => (
@@ -2398,7 +2141,6 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        <div className="px-6 md:px-10 py-12 max-w-7xl mx-auto w-full">
         <div className="px-6 md:px-10 py-12 max-w-7xl mx-auto w-full">
 
           {/* ── Featured (priority) campaign ──────────────────── */}
@@ -2586,16 +2328,11 @@ export default function DashboardPage() {
           </div>
         </div>
         </>)}
-        </div>
-        </>)}
 
         {/* ── Campaigns tab ───────────────────────────────────── */}
         {activeNav === "campaigns" && (
           isCreator ? <CreatorCampaignsPanel data={creatorData} /> : <BrandCampaignsPanel data={brandData} />
         )}
-
-        {/* ── Messages tab ────────────────────────────────────── */}
-        {activeNav === "messages" && <MessagesPanel isCreator={isCreator} />}
 
         {/* ── Messages tab ────────────────────────────────────── */}
         {activeNav === "messages" && <MessagesPanel isCreator={isCreator} />}
@@ -2610,7 +2347,7 @@ export default function DashboardPage() {
         {activeNav === "creators" && !isCreator && <BrandCreatorsPanel />}
 
         {/* ── Profile tab ──────────────────────────────────────── */}
-        {activeNav === "profile" && isCreator && <CreatorProfilePanel data={creatorData} />}
+        {activeNav === "profile" && isCreator && <CreatorProfilePanel user={currentUser} />}
 
         {/* ── Settings tab ─────────────────────────────────────── */}
         {activeNav === "settings" && <SettingsPanel isCreator={isCreator} />}
@@ -2618,7 +2355,6 @@ export default function DashboardPage() {
         </main>
 
         {/* ── Footer ──────────────────────────────────────────── */}
-        <footer className="px-6 md:px-10 py-5 border-t-2 border-(--color-fg) mt-8" style={activeNav === "messages" ? { display: "none" } : undefined}>
         <footer className="px-6 md:px-10 py-5 border-t-2 border-(--color-fg) mt-8" style={activeNav === "messages" ? { display: "none" } : undefined}>
           <div className="flex items-center justify-between max-w-7xl mx-auto">
             <p className="font-display italic text-xl opacity-50">Icons.</p>

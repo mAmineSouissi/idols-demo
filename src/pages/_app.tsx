@@ -1,6 +1,9 @@
 import "@/styles/globals.css";
 import type { AppProps } from "next/app";
+import type { Session } from "next-auth";
+import { SessionProvider } from "next-auth/react";
 import { ThemeProvider } from "next-themes";
+import { AuthSync } from "@/components/auth/AuthSync";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import {
@@ -49,7 +52,10 @@ const bricolage = Bricolage_Grotesque({
   display: "swap",
 });
 
-export default function App({ Component, pageProps }: AppProps) {
+export default function App({
+  Component,
+  pageProps: { session, ...pageProps },
+}: AppProps<{ session?: Session }>) {
   const router = useRouter();
   const canonical = `https://icons.so${router.asPath.split("?")[0].split("#")[0]}`;
 
@@ -90,19 +96,22 @@ export default function App({ Component, pageProps }: AppProps) {
           <meta name="twitter:description" content="Icons connects brands with 10,000+ vetted talent — creators, musicians, dancers, photographers and more. No agency. No commission. Campaigns live in 48 hours." />
           <meta name="twitter:image" content="https://icons.so/logoBlack.png" />
         </Head>
-        <ThemeProvider
-          attribute="data-theme"
-          defaultTheme="light"
-          enableSystem={false}
-        >
-          <ErrorBoundary>
-            <SmoothScroll>
-              <PageTransition>
-                <Application Component={Component} pageProps={pageProps} />
-              </PageTransition>
-            </SmoothScroll>
-          </ErrorBoundary>
-        </ThemeProvider>
+        <SessionProvider session={session}>
+          <AuthSync />
+          <ThemeProvider
+            attribute="data-theme"
+            defaultTheme="light"
+            enableSystem={false}
+          >
+            <ErrorBoundary>
+              <SmoothScroll>
+                <PageTransition>
+                  <Application Component={Component} pageProps={pageProps} />
+                </PageTransition>
+              </SmoothScroll>
+            </ErrorBoundary>
+          </ThemeProvider>
+        </SessionProvider>
       </div>
     </>
   );
