@@ -35,7 +35,6 @@ export const HeroCampaign = ({ ready = true }: HeroCampaignProps) => {
           "-=0.2",
         )
         .fromTo(
-        .fromTo(
           ".hero-letter",
           { opacity: 0, y: 30 },
           {
@@ -47,7 +46,6 @@ export const HeroCampaign = ({ ready = true }: HeroCampaignProps) => {
           },
           "-=0.5",
         )
-        .fromTo(
         .fromTo(
           ".hero-star",
           { opacity: 0, scale: 0, rotate: -180 },
@@ -61,24 +59,17 @@ export const HeroCampaign = ({ ready = true }: HeroCampaignProps) => {
           "-=0.35",
         )
         .fromTo(
-        .fromTo(
           ".hero-star-glow",
-          { opacity: 0, scale: 0.3 },
-          { opacity: 1, scale: 1, duration: 0.6, ease: "power2.out" },
           { opacity: 0, scale: 0.3 },
           { opacity: 1, scale: 1, duration: 0.6, ease: "power2.out" },
           "-=0.5",
         )
         .fromTo(
-        .fromTo(
           ".hero-script",
-          { opacity: 0, y: 20 },
-          { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" },
           { opacity: 0, y: 20 },
           { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" },
           "-=0.3",
         )
-        .fromTo(
         .fromTo(
           ".hero-cta",
           { opacity: 0, y: 20 },
@@ -91,7 +82,6 @@ export const HeroCampaign = ({ ready = true }: HeroCampaignProps) => {
           },
           "-=0.2",
         )
-        .fromTo(
         .fromTo(
           ".hero-floater",
           { opacity: 0, scale: 0, rotate: -90 },
@@ -175,13 +165,6 @@ export const HeroCampaign = ({ ready = true }: HeroCampaignProps) => {
     },
     { ready, dependencies: [] },
   );
-
-  // Play the entrance timeline when the preloader finishes
-  useEffect(() => {
-    if (ready && tlRef.current?.paused()) {
-      tlRef.current.play();
-    }
-  }, [ready]);
 
   return (
     <section
