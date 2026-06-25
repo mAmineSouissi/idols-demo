@@ -6,7 +6,6 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
 import Link from "next/link";
 import { ArrowUpRight, Lock } from "lucide-react";
-import { ArrowUpRight, Lock } from "lucide-react";
 import { SectionLabel } from "@/components/shared/PagePrimitives";
 import { Sparkle } from "@/components/ui/Sparkle";
 import { ease, dur, stagger } from "@/lib/motion";
@@ -1105,23 +1104,7 @@ export const BrandsPage = () => {
                     loading="lazy"
                     className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06]"
                   />
-            {previewCreators.map((c, i) => {
-              const locked = i >= 2;
-              const anonName = c.name.split(" ")[0].charAt(0) + ".";
 
-              const cardContent = (
-                <>
-                  {/* Photo */}
-                  <img
-                    src={c.img}
-                    alt={locked ? "Creator" : c.name}
-                    loading="lazy"
-                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06]"
-                  />
-
-                  {/* Subtle grain overlay */}
-                  <div aria-hidden className="absolute inset-0 pointer-events-none"
-                    style={{ backgroundImage: "radial-gradient(circle, rgba(0,0,0,0.04) 1px, transparent 1px)", backgroundSize: "20px 20px" }} />
                   {/* Subtle grain overlay */}
                   <div aria-hidden className="absolute inset-0 pointer-events-none"
                     style={{ backgroundImage: "radial-gradient(circle, rgba(0,0,0,0.04) 1px, transparent 1px)", backgroundSize: "20px 20px" }} />
@@ -1154,51 +1137,7 @@ export const BrandsPage = () => {
                     style={{ color: "rgba(0,0,0,0.3)" }}>
                     {String(i + 1).padStart(2, "0")}
                   </span>
-                  {/* Lock overlay */}
-                  {locked && (
-                    <div className="br-lock-overlay">
-                      <div className="br-lock-icon">
-                        <Lock className="w-4 h-4 text-white" />
-                      </div>
-                      <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-white/70">
-                        Premium creator
-                      </p>
-                      <Link
-                        href="/pricing"
-                        className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.18em] px-4 py-2 rounded-full transition-all"
-                        style={{
-                          background: "var(--color-accent)",
-                          color: "rgba(0,0,0,0.85)",
-                          border: "1.5px solid rgba(255,255,255,0.2)",
-                        }}
-                      >
-                        Unlock profile <ArrowUpRight className="w-3 h-3" />
-                      </Link>
-                    </div>
-                  )}
 
-                  {/* Index */}
-                  <span className="absolute top-4 left-4 font-mono text-[10px] tracking-[0.25em]"
-                    style={{ color: "rgba(0,0,0,0.3)" }}>
-                    {String(i + 1).padStart(2, "0")}
-                  </span>
-
-                  {/* Stacked badges — top right */}
-                  <div className="absolute top-4 right-4 flex flex-col items-end gap-1.5">
-                    <span className="br-platform-badge">{c.platform}</span>
-                    {!locked && (
-                      <>
-                        <span className="font-mono text-[11px] font-semibold tracking-[0.1em] px-3 py-1 rounded-full"
-                          style={{ background: "rgba(255,255,255,0.8)", backdropFilter: "blur(8px)", color: "rgba(0,0,0,0.8)" }}>
-                          {c.followers}
-                        </span>
-                        <span className="font-mono text-[9px] tracking-[0.15em] px-2.5 py-0.5 rounded-full"
-                          style={{ background: "rgba(255,255,255,0.55)", backdropFilter: "blur(4px)", color: "rgba(0,0,0,0.55)" }}>
-                          {c.engagement} eng.
-                        </span>
-                      </>
-                    )}
-                  </div>
                   {/* Stacked badges — top right */}
                   <div className="absolute top-4 right-4 flex flex-col items-end gap-1.5">
                     <span className="br-platform-badge">{c.platform}</span>
