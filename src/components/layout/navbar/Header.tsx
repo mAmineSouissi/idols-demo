@@ -44,7 +44,7 @@ function ThemeToggle() {
 }
 
 const NAV_LINKS = [
-  { label: "Creators", href: "/creators" },
+  { label: "Talents",  href: "/talents" },
   { label: "Brands",   href: "/brands"   },
   { label: "Pricing",  href: "/pricing"  },
   { label: "About",    href: "/about"    },
@@ -54,7 +54,7 @@ const NAV_LINKS = [
 
 const TICKER = [
   "✦ now casting · summer drops",
-  "✦ 248 creators online",
+  "✦ 1,240 talents online · creators · musicians · dancers",
   "✦ paid in 48h · no agency",
   "✦ apply in 60 seconds",
 ];
@@ -167,7 +167,7 @@ const Header = () => {
               className="hidden md:inline-flex items-center gap-1.5 ml-1 px-2 py-0.5 rounded-full border-[1.5px] border-(--color-fg) font-mono text-[9px] tracking-[0.3em] uppercase"
               style={{ background: "var(--accent)" }}
             >
-              ✦ ugc 2026
+              ✦ talent · 2026
             </span>
           </Link>
 

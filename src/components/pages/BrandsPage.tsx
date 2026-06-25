@@ -6,6 +6,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
 import Link from "next/link";
 import { ArrowUpRight, Lock } from "lucide-react";
+import { ArrowUpRight, Lock } from "lucide-react";
 import { SectionLabel } from "@/components/shared/PagePrimitives";
 import { Sparkle } from "@/components/ui/Sparkle";
 import { ease, dur, stagger } from "@/lib/motion";
@@ -154,6 +155,19 @@ const PAGE_STYLES = `
   @media (min-width: 1024px) { .br-creators-grid { grid-template-columns: repeat(6, 1fr); } }
   .br-creator-card { aspect-ratio: 3 / 4; display: block; position: relative; overflow: hidden; }
   .br-creator-card:hover { outline: 2.5px solid var(--color-accent); outline-offset: -2px; z-index: 2; }
+  .br-creator-card[data-locked="true"] img { filter: blur(20px) saturate(0.4) brightness(0.7); }
+  .br-creator-card[data-locked="true"]:hover { outline: none; cursor: default; }
+  .br-lock-overlay {
+    position: absolute; inset: 0; z-index: 5;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 0.75rem; text-align: center; padding: 1.5rem;
+  }
+  .br-lock-icon {
+    width: 40px; height: 40px; border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.35);
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(0,0,0,0.35); backdrop-filter: blur(8px);
+  }
   .br-creator-card[data-locked="true"] img { filter: blur(20px) saturate(0.4) brightness(0.7); }
   .br-creator-card[data-locked="true"]:hover { outline: none; cursor: default; }
   .br-lock-overlay {
@@ -1070,7 +1084,7 @@ export const BrandsPage = () => {
                 Beauty, fitness, food, travel, design — 40+ verticals, all
                 audited for audience quality.
               </p>
-              <Link href="/creators" className="btn-ghost group shrink-0" style={{ borderColor: "color-mix(in srgb, var(--color-bg) 30%, transparent)", color: "var(--color-bg)" }}>
+              <Link href="/talents" className="btn-ghost group shrink-0" style={{ borderColor: "color-mix(in srgb, var(--color-bg) 30%, transparent)", color: "var(--color-bg)" }}>
                 Browse roster
                 <ArrowUpRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
               </Link>
@@ -1091,7 +1105,23 @@ export const BrandsPage = () => {
                     loading="lazy"
                     className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06]"
                   />
+            {previewCreators.map((c, i) => {
+              const locked = i >= 2;
+              const anonName = c.name.split(" ")[0].charAt(0) + ".";
 
+              const cardContent = (
+                <>
+                  {/* Photo */}
+                  <img
+                    src={c.img}
+                    alt={locked ? "Creator" : c.name}
+                    loading="lazy"
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06]"
+                  />
+
+                  {/* Subtle grain overlay */}
+                  <div aria-hidden className="absolute inset-0 pointer-events-none"
+                    style={{ backgroundImage: "radial-gradient(circle, rgba(0,0,0,0.04) 1px, transparent 1px)", backgroundSize: "20px 20px" }} />
                   {/* Subtle grain overlay */}
                   <div aria-hidden className="absolute inset-0 pointer-events-none"
                     style={{ backgroundImage: "radial-gradient(circle, rgba(0,0,0,0.04) 1px, transparent 1px)", backgroundSize: "20px 20px" }} />
@@ -1124,7 +1154,51 @@ export const BrandsPage = () => {
                     style={{ color: "rgba(0,0,0,0.3)" }}>
                     {String(i + 1).padStart(2, "0")}
                   </span>
+                  {/* Lock overlay */}
+                  {locked && (
+                    <div className="br-lock-overlay">
+                      <div className="br-lock-icon">
+                        <Lock className="w-4 h-4 text-white" />
+                      </div>
+                      <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-white/70">
+                        Premium creator
+                      </p>
+                      <Link
+                        href="/pricing"
+                        className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.18em] px-4 py-2 rounded-full transition-all"
+                        style={{
+                          background: "var(--color-accent)",
+                          color: "rgba(0,0,0,0.85)",
+                          border: "1.5px solid rgba(255,255,255,0.2)",
+                        }}
+                      >
+                        Unlock profile <ArrowUpRight className="w-3 h-3" />
+                      </Link>
+                    </div>
+                  )}
 
+                  {/* Index */}
+                  <span className="absolute top-4 left-4 font-mono text-[10px] tracking-[0.25em]"
+                    style={{ color: "rgba(0,0,0,0.3)" }}>
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
+
+                  {/* Stacked badges — top right */}
+                  <div className="absolute top-4 right-4 flex flex-col items-end gap-1.5">
+                    <span className="br-platform-badge">{c.platform}</span>
+                    {!locked && (
+                      <>
+                        <span className="font-mono text-[11px] font-semibold tracking-[0.1em] px-3 py-1 rounded-full"
+                          style={{ background: "rgba(255,255,255,0.8)", backdropFilter: "blur(8px)", color: "rgba(0,0,0,0.8)" }}>
+                          {c.followers}
+                        </span>
+                        <span className="font-mono text-[9px] tracking-[0.15em] px-2.5 py-0.5 rounded-full"
+                          style={{ background: "rgba(255,255,255,0.55)", backdropFilter: "blur(4px)", color: "rgba(0,0,0,0.55)" }}>
+                          {c.engagement} eng.
+                        </span>
+                      </>
+                    )}
+                  </div>
                   {/* Stacked badges — top right */}
                   <div className="absolute top-4 right-4 flex flex-col items-end gap-1.5">
                     <span className="br-platform-badge">{c.platform}</span>
@@ -1197,7 +1271,7 @@ export const BrandsPage = () => {
               </h2>
             </div>
             <p className="br-reveal hidden md:block font-mono text-[12px] tracking-wide text-(--color-muted-fg) max-w-xs leading-relaxed self-end">
-              Four things we get right that every other creator platform gets
+              Four things we get right that every other talent platform gets
               wrong.
             </p>
           </div>

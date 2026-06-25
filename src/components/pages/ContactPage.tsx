@@ -207,11 +207,11 @@ export const ContactPage = () => {
                   <div className="flex flex-wrap gap-3">
                     {form.subject === "creator" ? (
                       <>
-                        <Link href="/creators/apply" className="btn-ghost group text-sm" style={{ color: "var(--color-fg)", borderColor: "var(--color-fg)", boxShadow: "3px 3px 0 0 var(--color-fg)" }}>
+                        <Link href="/talents/apply" className="btn-ghost group text-sm" style={{ color: "var(--color-fg)", borderColor: "var(--color-fg)", boxShadow: "3px 3px 0 0 var(--color-fg)" }}>
                           Start your application
                           <ArrowUpRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                         </Link>
-                        <Link href="/creators" className="font-mono text-[11px] uppercase tracking-[0.18em] underline underline-offset-2 opacity-60 hover:opacity-100 transition-opacity self-center" style={{ color: "var(--color-fg)" }}>
+                        <Link href="/talents" className="font-mono text-[11px] uppercase tracking-[0.18em] underline underline-offset-2 opacity-60 hover:opacity-100 transition-opacity self-center" style={{ color: "var(--color-fg)" }}>
                           Browse the roster
                         </Link>
                       </>
@@ -221,7 +221,7 @@ export const ContactPage = () => {
                           Build a brief now
                           <ArrowUpRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                         </Link>
-                        <Link href="/creators" className="font-mono text-[11px] uppercase tracking-[0.18em] underline underline-offset-2 opacity-60 hover:opacity-100 transition-opacity self-center" style={{ color: "var(--color-fg)" }}>
+                        <Link href="/talents" className="font-mono text-[11px] uppercase tracking-[0.18em] underline underline-offset-2 opacity-60 hover:opacity-100 transition-opacity self-center" style={{ color: "var(--color-fg)" }}>
                           Browse creators
                         </Link>
                       </>
@@ -231,7 +231,7 @@ export const ContactPage = () => {
                           Run a campaign
                           <ArrowUpRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                         </Link>
-                        <Link href="/creators" className="font-mono text-[11px] uppercase tracking-[0.18em] underline underline-offset-2 opacity-60 hover:opacity-100 transition-opacity self-center" style={{ color: "var(--color-fg)" }}>
+                        <Link href="/talents" className="font-mono text-[11px] uppercase tracking-[0.18em] underline underline-offset-2 opacity-60 hover:opacity-100 transition-opacity self-center" style={{ color: "var(--color-fg)" }}>
                           Explore creators
                         </Link>
                       </>
@@ -504,7 +504,7 @@ export const ContactPage = () => {
                 <ArrowUpRight className="w-4 h-4" />
               </Link>
               <Link
-                href="/creators"
+                href="/talents"
                 className="btn-ghost"
                 style={{
                   background: "transparent",

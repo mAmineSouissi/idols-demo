@@ -253,7 +253,7 @@ function ConversionCTA() {
 
         {/* Creator path */}
         <Link
-          href="/creators"
+          href="/talents"
           className="group flex flex-col gap-4 p-8 md:p-10 transition-colors duration-200"
           onMouseEnter={(e) => (e.currentTarget.style.background = "var(--color-panel)")}
           onMouseLeave={(e) => (e.currentTarget.style.background = "")}

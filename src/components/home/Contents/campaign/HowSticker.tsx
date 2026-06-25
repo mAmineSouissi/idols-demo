@@ -42,7 +42,7 @@ const STEPS: Step[] = [
     mediaAccent: "oklch(0.7823 0.0488 220.2338)",
     mediaImage: {
       src: "/cards/apply_in_seconds.jpg",
-      alt: "Apply in 60 seconds — vibe-first creator application",
+      alt: "Apply in 60 seconds — vibe-first talent application",
     },
     mediaStars: [
       { fill: "#f5c518", size: 44, cls: "top-4 right-4 rotate-12" },

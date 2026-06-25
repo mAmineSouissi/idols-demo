@@ -6,18 +6,18 @@ const SITE = "https://icons.so";
 
 const STATIC_PAGES = [
   { loc: "/",            priority: "1.0", changefreq: "weekly"  },
-  { loc: "/creators",   priority: "0.9", changefreq: "daily"   },
+  { loc: "/talents",   priority: "0.9", changefreq: "daily"   },
   { loc: "/brands",     priority: "0.9", changefreq: "weekly"  },
   { loc: "/pricing",    priority: "0.8", changefreq: "monthly" },
   { loc: "/blog",       priority: "0.8", changefreq: "weekly"  },
   { loc: "/about",      priority: "0.7", changefreq: "monthly" },
   { loc: "/contact",    priority: "0.6", changefreq: "monthly" },
-  { loc: "/creators/apply", priority: "0.7", changefreq: "monthly" },
+  { loc: "/talents/apply", priority: "0.7", changefreq: "monthly" },
 ];
 
 function buildSitemap(): string {
   const creatorUrls = creators.map((c) => ({
-    loc: `/creators/${c.handle}`,
+    loc: `/talents/${c.handle}`,
     priority: "0.7",
     changefreq: "weekly",
   }));

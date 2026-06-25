@@ -99,8 +99,8 @@ export const CtaSticker = () => {
           </div>
 
           <div className="mt-2 flex flex-wrap items-center justify-center gap-4">
-            <Link href="/creators" className="btn-primary">
-              Join as creator
+            <Link href="/talents" className="btn-primary">
+              Join as talent
               <ArrowUpRight className="w-4 h-4" />
             </Link>
             <Link

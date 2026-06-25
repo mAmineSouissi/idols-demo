@@ -69,7 +69,7 @@ export const CreatorRoster = () => {
               05 · the roster
             </div>
             <h2 className="roster-headline font-display italic text-[clamp(2.25rem,6vw,5rem)] leading-[0.95] tracking-[-0.03em] max-w-3xl">
-              Real creators. <br /> Real rates.
+              Real talent. <br /> Real rates.
             </h2>
           </div>
 

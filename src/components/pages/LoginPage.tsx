@@ -136,7 +136,7 @@ const PAGE_STYLES = `
 /* ────────────────────────────────────────────────────────────── */
 
 const leftStats = [
-  { value: "10K+",  label: "Creators" },
+  { value: "10K+",  label: "Talents" },
   { value: "$12M+", label: "Paid out" },
   { value: "500+",  label: "Campaigns" },
   { value: "0%",    label: "Agency cut" },
@@ -146,14 +146,14 @@ const modeConfig = {
   creator: {
     headline: "Welcome back.",
     sub: "Log in to view your briefs, earnings, and campaign history.",
-    signupLabel: "New creator?",
-    signupLink: "/creators/apply",
+    signupLabel: "New to Icons?",
+    signupLink: "/talents/apply",
     signupCta: "Apply to join",
-    submitLabel: "Log in as creator",
+    submitLabel: "Log in as talent",
   },
   brand: {
     headline: "Back to work.",
-    sub: "Log in to manage campaigns, review creator matches, and track performance.",
+    sub: "Log in to manage campaigns, review talent matches, and track performance.",
     signupLabel: "New brand?",
     signupLink: "/brief",
     signupCta: "Start a campaign",
@@ -228,7 +228,7 @@ export default function LoginPage() {
             </h1>
           </div>
           <p className="font-mono text-[12px] leading-[1.8] text-(--color-muted-fg)">
-            Redirecting to your {mode === "creator" ? "creator dashboard" : "brand dashboard"}…
+            Redirecting to your {mode === "creator" ? "talent dashboard" : "brand dashboard"}…
           </p>
           <div className="flex items-center gap-2 font-mono text-[10px] text-(--color-muted-fg)">
             <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -273,7 +273,7 @@ export default function LoginPage() {
             className="font-display italic leading-[1.0]"
             style={{ fontSize: "clamp(2rem,3.5vw,3rem)", color: "var(--color-bg)" }}
           >
-            The platform that<br />works for creators,<br />not against them.
+            The platform that<br />works for talent,<br />not against them.
           </h2>
           <div
             className="font-mono text-[11px] leading-[1.8]"
@@ -354,7 +354,7 @@ export default function LoginPage() {
                   data-active={mode === "creator" ? "true" : "false"}
                   onClick={() => { setMode("creator"); setErrors({}); }}
                 >
-                  Creator
+                  Talent
                 </button>
                 <button
                   type="button"

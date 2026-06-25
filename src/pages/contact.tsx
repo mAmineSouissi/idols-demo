@@ -2,7 +2,7 @@ import Head from "next/head";
 import { ContactPage } from "@/components/pages/ContactPage";
 
 const TITLE = "Contact — Icons";
-const DESC = "Get in touch with the Icons team. Questions about campaigns, creator applications, press, or partnerships — we read every message.";
+const DESC = "Get in touch with the Icons team. Questions about campaigns, talent applications, press, or partnerships — we read every message.";
 
 export default function Contact() {
   return (

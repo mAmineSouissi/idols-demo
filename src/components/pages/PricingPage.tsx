@@ -536,7 +536,7 @@ export const PricingPage = () => {
                     </ul>
 
                     {i === 0 && (
-                      <Link href="/creators/apply" className="btn-primary mt-2 justify-center text-sm">
+                      <Link href="/talents/apply" className="btn-primary mt-2 justify-center text-sm">
                         Apply now
                         <ArrowUpRight className="w-3.5 h-3.5" />
                       </Link>
@@ -609,7 +609,7 @@ export const PricingPage = () => {
                 <ArrowUpRight className="w-4 h-4" />
               </Link>
               <Link
-                href="/creators/apply"
+                href="/talents/apply"
                 className="btn-ghost"
                 style={{
                   background: "transparent",

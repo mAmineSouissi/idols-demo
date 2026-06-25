@@ -73,7 +73,7 @@ export const WhyGenZ = () => {
         </h2>
 
         <p className="why-body mt-12 max-w-3xl text-lg md:text-xl leading-relaxed font-sans">
-          Gen-Z skips every ad that feels like an ad. Icons creators are already
+          Gen-Z skips every ad that feels like an ad. Icons talent is already
           living inside the communities your brand wants to reach — their
           content pulls 4.5× more engagement than studio-produced video, at a
           fraction of the cost. No set, no script, no agency markup. Just real
@@ -86,11 +86,12 @@ export const WhyGenZ = () => {
             <ArrowUpRight className="w-4 h-4" />
           </Link>
           <Link
-            href="/creators"
+            href="/talents"
             className="btn-ghost"
             style={{ borderColor: "var(--fg)", color: "var(--fg)" }}
           >
-            Join as creator
+            Join as talent
+            <ArrowUpRight className="w-4 h-4" />
           </Link>
         </div>
       </div>

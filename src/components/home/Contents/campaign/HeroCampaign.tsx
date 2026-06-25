@@ -35,6 +35,7 @@ export const HeroCampaign = ({ ready = true }: HeroCampaignProps) => {
           "-=0.2",
         )
         .fromTo(
+        .fromTo(
           ".hero-letter",
           { opacity: 0, y: 30 },
           {
@@ -46,6 +47,7 @@ export const HeroCampaign = ({ ready = true }: HeroCampaignProps) => {
           },
           "-=0.5",
         )
+        .fromTo(
         .fromTo(
           ".hero-star",
           { opacity: 0, scale: 0, rotate: -180 },
@@ -59,17 +61,24 @@ export const HeroCampaign = ({ ready = true }: HeroCampaignProps) => {
           "-=0.35",
         )
         .fromTo(
+        .fromTo(
           ".hero-star-glow",
+          { opacity: 0, scale: 0.3 },
+          { opacity: 1, scale: 1, duration: 0.6, ease: "power2.out" },
           { opacity: 0, scale: 0.3 },
           { opacity: 1, scale: 1, duration: 0.6, ease: "power2.out" },
           "-=0.5",
         )
         .fromTo(
+        .fromTo(
           ".hero-script",
+          { opacity: 0, y: 20 },
+          { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" },
           { opacity: 0, y: 20 },
           { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" },
           "-=0.3",
         )
+        .fromTo(
         .fromTo(
           ".hero-cta",
           { opacity: 0, y: 20 },
@@ -82,6 +91,7 @@ export const HeroCampaign = ({ ready = true }: HeroCampaignProps) => {
           },
           "-=0.2",
         )
+        .fromTo(
         .fromTo(
           ".hero-floater",
           { opacity: 0, scale: 0, rotate: -90 },
@@ -166,6 +176,13 @@ export const HeroCampaign = ({ ready = true }: HeroCampaignProps) => {
     { ready, dependencies: [] },
   );
 
+  // Play the entrance timeline when the preloader finishes
+  useEffect(() => {
+    if (ready && tlRef.current?.paused()) {
+      tlRef.current.play();
+    }
+  }, [ready]);
+
   return (
     <section
       ref={ref}
@@ -204,7 +221,7 @@ export const HeroCampaign = ({ ready = true }: HeroCampaignProps) => {
         {/* Tiny eyebrow inside */}
         <div className="font-mono text-[15px] tracking-[0.32em] uppercase text-(--color-fg) flex items-center gap-2 opacity-60">
           <span>✦</span>
-          <span>where creators get paid & brands get results</span>
+          <span>where talent gets paid & brands get results</span>
           <span>✦</span>
         </div>
 
@@ -251,7 +268,7 @@ export const HeroCampaign = ({ ready = true }: HeroCampaignProps) => {
 
         {/* Value proposition */}
         <p className="hero-script font-script text-2xl md:text-3xl text-(--color-fg) -mt-2 text-center max-w-lg">
-          creators get paid in 48h &middot; brands get content that converts
+          talent gets paid in 48h &middot; brands get content that converts
         </p>
 
         {/* Trust metrics */}
@@ -269,8 +286,8 @@ export const HeroCampaign = ({ ready = true }: HeroCampaignProps) => {
 
         {/* CTAs */}
         <div className="mt-4 flex flex-wrap items-center justify-center gap-4">
-          <Link href="/creators" className="hero-cta btn-primary">
-            I&apos;m a creator
+          <Link href="/talents" className="hero-cta btn-primary">
+            I&apos;m talent
             <ArrowUpRight className="w-4 h-4" />
           </Link>
           <Link href="/brands" className="hero-cta btn-ghost">

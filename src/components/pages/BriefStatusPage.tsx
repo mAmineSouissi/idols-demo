@@ -491,7 +491,7 @@ export default function BriefStatusPage() {
 
           <div className="bs-creator-grid">
             {MATCHED_CREATORS.map((c) => (
-              <Link key={c.handle} href={`/creators/${c.handle}`} className="bs-creator-card group">
+              <Link key={c.handle} href={`/talents/${c.handle}`} className="bs-creator-card group">
                 {/* Sample content strip */}
                 <div className="bs-sample-strip">
                   {c.samples.map((src, i) => (
@@ -547,7 +547,7 @@ export default function BriefStatusPage() {
           <button onClick={goToDashboard} className="font-mono text-[10px] text-(--color-muted-fg) hover:text-(--color-fg) transition-colors flex items-center gap-1 cursor-pointer">
             Dashboard <ArrowUpRight className="w-3 h-3" />
           </button>
-          <Link href="/creators" className="font-mono text-[10px] text-(--color-muted-fg) hover:text-(--color-fg) transition-colors flex items-center gap-1">
+          <Link href="/talents" className="font-mono text-[10px] text-(--color-muted-fg) hover:text-(--color-fg) transition-colors flex items-center gap-1">
             Browse creators <ArrowUpRight className="w-3 h-3" />
           </Link>
         </div>

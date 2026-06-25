@@ -427,7 +427,7 @@ export const CreatorApplyPage = () => {
 
   const handleSubmit = () => {
     localStorage.setItem("icons-session", JSON.stringify({ role: "creator" }));
-    router.push("/creators/status");
+    router.push("/talents/status");
   };
 
   const current = STEPS[step];

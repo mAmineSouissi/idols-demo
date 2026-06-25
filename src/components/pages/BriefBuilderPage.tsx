@@ -545,7 +545,7 @@ export const BriefBuilderPage = () => {
                       {[
                         { val: "awareness",  label: "Brand Awareness",     sub: "Get in front of new audiences at scale" },
                         { val: "conversion", label: "Drive Conversions",   sub: "Sales, sign-ups, downloads, installs" },
-                        { val: "ugc",        label: "UGC Content Library", sub: "Build brand-owned assets for ads & organic" },
+                        { val: "ugc",        label: "Content Library",     sub: "Build brand-owned assets — video, photo, audio — for ads & organic" },
                         { val: "launch",     label: "Product Launch",      sub: "Generate buzz around something new" },
                       ].map(({ val, label, sub }) => (
                         <OptButton key={val} label={label} sub={sub} large
@@ -725,7 +725,7 @@ export const BriefBuilderPage = () => {
                     { label: "Industry",     value: brief.industry },
                     { label: "Audience",     value: brief.audience || "Not specified" },
                     { label: "Goal",         value: brief.campaignType ? (
-                      { awareness: "Brand Awareness", conversion: "Drive Conversions", ugc: "UGC Library", launch: "Product Launch" }
+                      { awareness: "Brand Awareness", conversion: "Drive Conversions", ugc: "Content Library", launch: "Product Launch" }
                         [brief.campaignType] || brief.campaignType
                     ) : "—" },
                     { label: "Budget",       value: brief.budget || "—" },

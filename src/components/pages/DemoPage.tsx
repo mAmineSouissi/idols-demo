@@ -82,7 +82,7 @@ const PAGE_STYLES = `
 /* ─── Explore links data ─────────────────────────────────────────── */
 
 const exploreLinks = [
-  { href: "/creators",     Icon: Users,          label: "Creator roster",   sub: "Browse 10K+ profiles"    },
+  { href: "/talents",     Icon: Users,          label: "Creator roster",   sub: "Browse 10K+ profiles"    },
   { href: "/brief-builder",Icon: FileText,        label: "Brief builder",    sub: "Build a campaign"        },
   { href: "/blog",         Icon: BookOpen,        label: "The journal",      sub: "Creator & brand reads"   },
   { href: "/brands",       Icon: LayoutDashboard, label: "For brands",       sub: "How Icons works"         },
