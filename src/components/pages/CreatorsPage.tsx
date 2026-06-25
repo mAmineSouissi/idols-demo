@@ -6,7 +6,6 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
 import Link from "next/link";
 import { ArrowUpRight, Sparkles, Search, X, Lock } from "lucide-react";
-import { ArrowUpRight, Sparkles, Search, X, Lock } from "lucide-react";
 import { SectionShell, SectionLabel } from "@/components/shared/PagePrimitives";
 import { Sparkle } from "@/components/ui/Sparkle";
 import { ease, dur, stagger } from "@/lib/motion";
@@ -379,25 +378,18 @@ const PAGE_STYLES = `
 /* ─── Creator card ───────────────────────────────────────────────── */
 
 function CreatorCardInner({
-function CreatorCardInner({
   c,
   index,
-  locked,
   locked,
 }: {
   c: (typeof featuredCreators)[0];
   index: number;
   locked: boolean;
-  locked: boolean;
 }) {
   const anonName = c.name.split(" ")[0].charAt(0) + ".";
   const anonNiche = c.category;
 
-  const anonName = c.name.split(" ")[0].charAt(0) + ".";
-  const anonNiche = c.category;
-
   return (
-    <>
     <>
       {/* Photo */}
       <img
@@ -541,15 +533,8 @@ function CreatorCardInner({
               style={{ color: "rgba(255,255,255,0.7)" }}
             >
               {locked ? anonNiche : c.niche}
-              {locked ? anonNiche : c.niche}
             </p>
             <h3 className="font-display text-2xl leading-none text-white flex items-center gap-2">
-              {locked ? anonName : c.name}
-              {!locked && (
-                <span
-                  className={`cr-avail-dot ${c.available ? "avail" : "busy"}`}
-                />
-              )}
               {locked ? anonName : c.name}
               {!locked && (
                 <span
@@ -688,7 +673,6 @@ const CommunityMark = ({ color }: { color: string }) => (
 /* ─── Page ───────────────────────────────────────────────────────── */
 
 const PREVIEW_COUNT = 8;
-const FREE_PREVIEW = 2; // first N cards shown unlocked, rest are anonymous/blurred
 const FREE_PREVIEW = 2; // first N cards shown unlocked, rest are anonymous/blurred
 const CATEGORIES = ["All", "Lifestyle", "Travel", "Beauty", "Fitness", "Fashion", "Food", "Tech", "Wellness"];
 
@@ -1333,7 +1317,6 @@ export const CreatorsPage = () => {
           <div className="creators-grid">
             {filteredCreators.length > 0 ? (
               filteredCreators.map((c, i) => (
-                <CreatorCard key={c.slug} c={c} index={i} locked={i >= FREE_PREVIEW} />
                 <CreatorCard key={c.slug} c={c} index={i} locked={i >= FREE_PREVIEW} />
               ))
             ) : (
