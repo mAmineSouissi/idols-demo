@@ -141,14 +141,19 @@ export const WaitlistPage = () => {
     setErrorMsg(null);
 
     const form = e.currentTarget;
-    const formData = new FormData(form);
-    formData.append("audience", mode);
+    const payload: Record<string, string> = Object.fromEntries(
+      new FormData(form).entries() as IterableIterator<[string, string]>,
+    );
+    payload.audience = mode;
 
     try {
       const res = await fetch(WAITLIST_ENDPOINT, {
         method: "POST",
-        body: formData,
-        headers: { Accept: "application/json" },
+        body: JSON.stringify(payload),
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
       });
       if (res.ok) {
         setStatus("success");
