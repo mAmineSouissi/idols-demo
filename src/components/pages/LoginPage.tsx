@@ -6,6 +6,7 @@ import { Sparkle } from "@/components/ui/Sparkle";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ease } from "@/lib/motion";
+import { useAuthActions } from "@/hooks/useAuthActions";
 
 /* ────────────────────────────────────────────────────────────── */
 /* STYLES                                                         */
@@ -136,7 +137,7 @@ const PAGE_STYLES = `
 /* ────────────────────────────────────────────────────────────── */
 
 const leftStats = [
-  { value: "10K+",  label: "Creators" },
+  { value: "10K+",  label: "Talents" },
   { value: "$12M+", label: "Paid out" },
   { value: "500+",  label: "Campaigns" },
   { value: "0%",    label: "Agency cut" },
@@ -146,14 +147,14 @@ const modeConfig = {
   creator: {
     headline: "Welcome back.",
     sub: "Log in to view your briefs, earnings, and campaign history.",
-    signupLabel: "New creator?",
-    signupLink: "/creators/apply",
+    signupLabel: "New to Icons?",
+    signupLink: "/talents/apply",
     signupCta: "Apply to join",
-    submitLabel: "Log in as creator",
+    submitLabel: "Log in as talent",
   },
   brand: {
     headline: "Back to work.",
-    sub: "Log in to manage campaigns, review creator matches, and track performance.",
+    sub: "Log in to manage campaigns, review talent matches, and track performance.",
     signupLabel: "New brand?",
     signupLink: "/brief",
     signupCta: "Start a campaign",
@@ -166,7 +167,13 @@ const modeConfig = {
 /* ────────────────────────────────────────────────────────────── */
 
 type Mode = "creator" | "brand";
-type FormState = { email: string; password: string };
+type AuthMode = "login" | "signup";
+type FormState = {
+  email: string;
+  password: string;
+  handle: string;
+  displayName: string;
+};
 type Errors    = Partial<Record<keyof FormState, string>>;
 
 export default function LoginPage() {
@@ -174,15 +181,22 @@ export default function LoginPage() {
   const router   = useRouter();
   const emailId  = useId();
   const passId   = useId();
+  const handleId = useId();
+  const nameId   = useId();
+  const { login, signup } = useAuthActions();
 
-  const [mode,      setMode]      = useState<Mode>("creator");
-  const [form,      setForm]      = useState<FormState>({ email: "", password: "" });
+  const initialMode: Mode = router.query.as === "brand" ? "brand" : "creator";
+  const [mode,      setMode]      = useState<Mode>(initialMode);
+  const [authMode,  setAuthMode]  = useState<AuthMode>("login");
+  const [form,      setForm]      = useState<FormState>({ email: "", password: "", handle: "", displayName: "" });
   const [errors,    setErrors]    = useState<Errors>({});
+  const [formError, setFormError] = useState<string | null>(null);
   const [showPass,  setShowPass]  = useState(false);
   const [loading,   setLoading]   = useState(false);
   const [done,      setDone]      = useState(false);
 
   const config = modeConfig[mode];
+  const isSignup = authMode === "signup";
 
   /* ── Entrance animation ─────────────────────────────────── */
   useGSAP(() => {
@@ -198,7 +212,13 @@ export default function LoginPage() {
     if (!form.email.trim())                          e.email    = "Email is required.";
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = "Enter a valid email.";
     if (!form.password)                              e.password = "Password is required.";
+    else if (isSignup && form.password.length < 8)   e.password = "Password must be at least 8 characters.";
     else if (form.password.length < 6)               e.password = "Password must be at least 6 characters.";
+    if (isSignup) {
+      if (!form.displayName.trim())                  e.displayName = "Display name is required.";
+      if (!form.handle.trim())                       e.handle = "Handle is required.";
+      else if (!/^[a-z0-9_]{2,64}$/.test(form.handle)) e.handle = "Lowercase letters, numbers, underscores only.";
+    }
     setErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -206,12 +226,28 @@ export default function LoginPage() {
   /* ── Submit ─────────────────────────────────────────────── */
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setFormError(null);
     if (!validate()) return;
     setLoading(true);
-    // Simulate auth round-trip then persist a mock session
-    await new Promise((r) => setTimeout(r, 1400));
-    localStorage.setItem("icons-session", JSON.stringify({ role: mode }));
-    router.push(`/dashboard?as=${mode}`);
+
+    const result = isSignup
+      ? await signup({
+          email: form.email.trim(),
+          password: form.password,
+          role: mode,
+          handle: form.handle.trim(),
+          displayName: form.displayName.trim(),
+        })
+      : await login(form.email.trim(), form.password);
+
+    if (!result.ok) {
+      setLoading(false);
+      setFormError(result.error ?? "Something went wrong. Try again.");
+      return;
+    }
+
+    setDone(true);
+    router.push("/dashboard");
   }
 
   /* ── Success screen ─────────────────────────────────────── */
@@ -228,7 +264,7 @@ export default function LoginPage() {
             </h1>
           </div>
           <p className="font-mono text-[12px] leading-[1.8] text-(--color-muted-fg)">
-            Redirecting to your {mode === "creator" ? "creator dashboard" : "brand dashboard"}…
+            Redirecting to your {mode === "creator" ? "talent dashboard" : "brand dashboard"}…
           </p>
           <div className="flex items-center gap-2 font-mono text-[10px] text-(--color-muted-fg)">
             <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -273,7 +309,7 @@ export default function LoginPage() {
             className="font-display italic leading-[1.0]"
             style={{ fontSize: "clamp(2rem,3.5vw,3rem)", color: "var(--color-bg)" }}
           >
-            The platform that<br />works for creators,<br />not against them.
+            The platform that<br />works for talent,<br />not against them.
           </h2>
           <div
             className="font-mono text-[11px] leading-[1.8]"
@@ -345,7 +381,7 @@ export default function LoginPage() {
               </p>
             </div>
 
-            {/* Mode toggle */}
+            {/* Account type toggle */}
             <div className="lg-in">
               <div className="lg-toggle" role="group" aria-label="Account type">
                 <button
@@ -354,7 +390,7 @@ export default function LoginPage() {
                   data-active={mode === "creator" ? "true" : "false"}
                   onClick={() => { setMode("creator"); setErrors({}); }}
                 >
-                  Creator
+                  Talent
                 </button>
                 <button
                   type="button"
@@ -367,8 +403,73 @@ export default function LoginPage() {
               </div>
             </div>
 
+            {/* Login / Sign up toggle */}
+            <div className="lg-in">
+              <div className="lg-toggle" role="group" aria-label="Auth mode">
+                <button
+                  type="button"
+                  className="lg-toggle-btn"
+                  data-active={authMode === "login" ? "true" : "false"}
+                  onClick={() => { setAuthMode("login"); setErrors({}); setFormError(null); }}
+                >
+                  Log in
+                </button>
+                <button
+                  type="button"
+                  className="lg-toggle-btn"
+                  data-active={authMode === "signup" ? "true" : "false"}
+                  onClick={() => { setAuthMode("signup"); setErrors({}); setFormError(null); }}
+                >
+                  Sign up
+                </button>
+              </div>
+            </div>
+
             {/* Form */}
             <form onSubmit={handleSubmit} noValidate className="lg-in flex flex-col gap-5">
+
+              {/* Signup-only: display name + handle */}
+              {isSignup && (
+                <>
+                  <div className="lg-field">
+                    <label htmlFor={nameId} className="font-mono text-[10px] uppercase tracking-[0.22em] text-(--color-muted-fg)">
+                      Display name
+                    </label>
+                    <input
+                      id={nameId}
+                      type="text"
+                      autoComplete="name"
+                      placeholder="Maya Reads"
+                      className="lg-input"
+                      aria-invalid={!!errors.displayName}
+                      value={form.displayName}
+                      onChange={(e) => { setForm((f) => ({ ...f, displayName: e.target.value })); setErrors((er) => ({ ...er, displayName: undefined })); }}
+                    />
+                    {errors.displayName && (
+                      <p className="font-mono text-[10px]" style={{ color: "#ef4444" }}>{errors.displayName}</p>
+                    )}
+                  </div>
+
+                  <div className="lg-field">
+                    <label htmlFor={handleId} className="font-mono text-[10px] uppercase tracking-[0.22em] text-(--color-muted-fg)">
+                      Handle
+                    </label>
+                    <input
+                      id={handleId}
+                      type="text"
+                      autoComplete="username"
+                      placeholder="mayareads"
+                      className="lg-input"
+                      aria-invalid={!!errors.handle}
+                      value={form.handle}
+                      onChange={(e) => { setForm((f) => ({ ...f, handle: e.target.value.toLowerCase() })); setErrors((er) => ({ ...er, handle: undefined })); }}
+                    />
+                    {errors.handle && (
+                      <p className="font-mono text-[10px]" style={{ color: "#ef4444" }}>{errors.handle}</p>
+                    )}
+                  </div>
+                </>
+              )}
 
               {/* Email */}
               <div className="lg-field">
@@ -428,6 +529,17 @@ export default function LoginPage() {
                 )}
               </div>
 
+              {/* Server / auth error */}
+              {formError && (
+                <p
+                  role="alert"
+                  className="font-mono text-[11px] leading-[1.6] rounded-md px-3 py-2"
+                  style={{ color: "#ef4444", background: "color-mix(in srgb, #ef4444 10%, transparent)" }}
+                >
+                  {formError}
+                </p>
+              )}
+
               {/* Submit */}
               <button
                 type="submit"
@@ -437,11 +549,13 @@ export default function LoginPage() {
                 {loading ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    Logging in…
+                    {isSignup ? "Creating account…" : "Logging in…"}
                   </>
                 ) : (
                   <>
-                    {config.submitLabel}
+                    {isSignup
+                      ? `Sign up as ${mode}`
+                      : config.submitLabel}
                     <ArrowUpRight className="w-4 h-4" />
                   </>
                 )}
@@ -451,19 +565,25 @@ export default function LoginPage() {
             {/* Divider */}
             <div className="lg-in lg-divider">
               <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-(--color-muted-fg) whitespace-nowrap">
-                No account?
+                {isSignup ? "Already an icon?" : "No account?"}
               </span>
             </div>
 
-            {/* Sign up CTA */}
+            {/* Auth-mode switch CTA */}
             <div className="lg-in flex flex-col gap-3 -mt-2">
               <p className="font-mono text-[11px] leading-[1.75] text-(--color-muted-fg)">
-                {config.signupLabel}
+                {isSignup
+                  ? "Log in to your existing workspace."
+                  : `New here? Create your ${mode} account in 60 seconds.`}
               </p>
-              <Link href={config.signupLink} className="btn-ghost w-full justify-center group">
-                {config.signupCta}
+              <button
+                type="button"
+                onClick={() => { setAuthMode(isSignup ? "login" : "signup"); setErrors({}); setFormError(null); }}
+                className="btn-ghost w-full justify-center group"
+              >
+                {isSignup ? "Log in instead" : `Sign up as ${mode}`}
                 <ArrowUpRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-              </Link>
+              </button>
             </div>
           </div>
         </div>

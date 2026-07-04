@@ -2,7 +2,7 @@ import Head from "next/head";
 import { BrandsPage } from "@/components/pages/BrandsPage";
 
 const TITLE = "For Brands — Icons";
-const DESC = "Run creator campaigns that actually convert. Hand-picked creators, transparent rates, and results in days — not months.";
+const DESC = "Run talent-led campaigns that actually convert. Hand-picked creators, musicians, dancers and photographers — transparent rates, results in days, not months.";
 
 export default function Brands() {
   return (

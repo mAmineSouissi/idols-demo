@@ -11,20 +11,32 @@ import {
   Settings, LogOut, Bell, ChevronRight, BarChart2, Menu, X,
   CheckCircle2, Clock, Zap, Upload, Check, TrendingUp, Send,
   ExternalLink, CreditCard, Mail, Smartphone, Globe, Star, UserCheck,
-  MessageSquare, Paperclip, ArrowLeft,
+  MessageSquare, ArrowLeft,
 } from "lucide-react";
 import { Sparkle } from "@/components/ui/Sparkle";
 import { ease, dur, stagger } from "@/lib/motion";
 import {
   MonoLabel,
   Avatar,
-  Chip,
-  FileChip,
   IconButton,
-  StickerCard,
   EmptyState,
-  InlineToast,
 } from "@/components/shared/primitives";
+import { useAuthStore } from "@/stores/auth.store";
+import {
+  dashboardApi,
+  type BrandDashboard,
+  type CreatorDashboard,
+} from "@api/dashboard";
+import {
+  chatApi,
+  type Conversation,
+  type ChatMessage,
+} from "@api/chat";
+import { notificationsApi, type AppNotification } from "@api/notifications";
+import { collaborationsApi, type Collaboration } from "@api/collaborations";
+import { io, type Socket } from "socket.io-client";
+import { useAuthActions } from "@/hooks/useAuthActions";
+import { useCurrentUser, type CurrentUserView } from "@/hooks/useCurrentUser";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
@@ -697,14 +709,14 @@ function ActivityIcon({ type }: { type: string }) {
 
 /* ── Sidebar ──────────────────────────────────────────────────── */
 
-function SidebarContent({ mode, active, onNav, onClose, onSignOut }: {
+function SidebarContent({ mode, active, onNav, onClose, onSignOut, user }: {
   mode: "creator" | "brand";
   active: string;
   onNav: (s: string) => void;
   onClose?: () => void;
   onSignOut: () => void;
+  user: CurrentUserView | null;
 }) {
-  const data = mode === "creator" ? creatorData : brandData;
   const creatorNav = [
     { id: "overview",  label: "Overview",  icon: LayoutDashboard },
     { id: "campaigns", label: "Campaigns", icon: FileText        },
@@ -742,13 +754,17 @@ function SidebarContent({ mode, active, onNav, onClose, onSignOut }: {
       {/* User card */}
       <div className="db-sidebar-user px-4 py-4 border-b-2 border-(--color-fg)">
         <div className="sticker flex items-center gap-3 p-3" data-tone="cream" style={{ boxShadow: "none" }}>
-          <div className="db-ring w-10 h-10 rounded-full shrink-0 flex items-center justify-center font-display italic text-lg border-2 border-(--color-fg)"
+          <div className="db-ring w-10 h-10 rounded-full shrink-0 flex items-center justify-center font-display italic text-lg border-2 border-(--color-fg) overflow-hidden"
             style={{ background: "var(--color-accent)", color: "var(--color-fg)" }}>
-            {data.user.avatar}
+            {user?.avatarUrl ? (
+              <img src={user.avatarUrl} alt={user.name} className="w-full h-full object-cover" />
+            ) : (
+              user?.avatar ?? "…"
+            )}
           </div>
           <div className="db-user-details min-w-0">
-            <p className="font-display italic text-base leading-tight truncate">{data.user.name}</p>
-            <p className="font-mono font-semibold text-[9px] uppercase tracking-[0.22em] opacity-65 mt-0.5">{data.user.tier}</p>
+            <p className="font-display italic text-base leading-tight truncate">{user?.name ?? "Loading…"}</p>
+            <p className="font-mono font-semibold text-[9px] uppercase tracking-[0.22em] opacity-65 mt-0.5">{user?.tier ?? ""}</p>
           </div>
         </div>
       </div>
@@ -782,19 +798,6 @@ function SidebarContent({ mode, active, onNav, onClose, onSignOut }: {
 /* TAB PANELS                                                     */
 /* ────────────────────────────────────────────────────────────── */
 
-/* ── Notification data ───────────────────────────────────────── */
-const CREATOR_NOTIFS = [
-  { icon: "paid",  text: "$640 payout arriving in 18h",        sub: "Leuchtturm1917 · just now",    unread: true  },
-  { icon: "check", text: "Content approved",                   sub: "Chamberlain Coffee · 2h ago",  unread: true  },
-  { icon: "brief", text: "New match: Patagonia Summer brief",  sub: "Deadline in 4 days · 1d ago",  unread: false },
-  { icon: "clock", text: "Content due in 3 days",              sub: "Penguin Random House · 2d ago", unread: false },
-];
-const BRAND_NOTIFS = [
-  { icon: "check", text: "2 creators submitted content",       sub: "Summer Glow · just now",       unread: true  },
-  { icon: "brief", text: "Campaign goes live in 2 hours",      sub: "Fragrance Launch · 1h ago",    unread: true  },
-  { icon: "paid",  text: "Weekly analytics report ready",      sub: "All campaigns · 1d ago",       unread: false },
-  { icon: "check", text: "New creator application: Maya R.",   sub: "Reviewed by Icons · 2d ago",   unread: false },
-];
 
 /* ── Shortlisted creators for brand panel ─────────────────── */
 const SHORTLISTED = [
@@ -823,6 +826,80 @@ function StatusChip({ status }: { status: string }) {
 }
 
 /* Creator — Campaigns */
+function CreatorInvites() {
+  const [invites, setInvites] = React.useState<Collaboration[]>([]);
+  const [busy, setBusy] = React.useState<string | null>(null);
+  const load = React.useCallback(() => {
+    collaborationsApi.mine().then(setInvites).catch(() => {});
+  }, []);
+  React.useEffect(() => {
+    load();
+  }, [load]);
+
+  const respond = async (id: string, status: "accepted" | "declined") => {
+    setBusy(id);
+    try {
+      await collaborationsApi.respond(id, status);
+      load();
+    } catch {
+      /* ignore */
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  if (invites.length === 0) return null;
+
+  return (
+    <div className="mb-8">
+      <MonoLabel size="sm" opacity={50} className="mb-3 block">
+        ✦ Campaign invites
+      </MonoLabel>
+      <div className="flex flex-col gap-2">
+        {invites.map((c) => (
+          <div
+            key={c.id}
+            className="flex items-center justify-between gap-3 border-2 border-(--color-border) rounded-xl px-4 py-3"
+          >
+            <div className="min-w-0">
+              <p className="font-mono text-[12px] font-semibold truncate">
+                {c.campaign?.brandName ?? "Campaign"}
+              </p>
+              <p className="font-mono text-[10px] opacity-55 truncate">
+                {c.campaign?.campaignType ?? ""}
+              </p>
+            </div>
+            {c.status === "invited" ? (
+              <div className="flex gap-2 shrink-0">
+                <button
+                  type="button"
+                  disabled={busy === c.id}
+                  onClick={() => respond(c.id, "accepted")}
+                  className="font-mono text-[10px] uppercase tracking-[0.12em] px-3 py-1.5 rounded-full border-2 border-(--color-border) hover:bg-(--color-accent) transition-colors disabled:opacity-40 cursor-pointer"
+                >
+                  Accept
+                </button>
+                <button
+                  type="button"
+                  disabled={busy === c.id}
+                  onClick={() => respond(c.id, "declined")}
+                  className="font-mono text-[10px] uppercase tracking-[0.12em] px-3 py-1.5 rounded-full border-2 border-(--color-border) hover:bg-(--color-accent-2) hover:text-white transition-colors disabled:opacity-40 cursor-pointer"
+                >
+                  Decline
+                </button>
+              </div>
+            ) : (
+              <span className="font-mono text-[10px] uppercase tracking-[0.12em] opacity-55 shrink-0">
+                {c.status}
+              </span>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function CreatorCampaignsPanel({ data }: { data: typeof creatorData }) {
   const [uploadFor, setUploadFor] = React.useState<string | null>(null);
   const [link, setLink] = React.useState("");
@@ -1133,7 +1210,7 @@ function BrandAnalyticsPanel({ data }: { data: typeof brandData }) {
       <div className="sticker p-6 md:p-8" data-tone="ink">
         <p className="font-mono text-[10px] uppercase tracking-[0.28em] opacity-60 mb-3">✦ icons insight</p>
         <p className="font-display italic text-2xl md:text-3xl leading-tight mb-3">
-          UGC outperforms paid<br />media on every metric.
+          Talent outperforms paid<br />media on every metric.
         </p>
         <p className="font-sans text-[13px] leading-relaxed opacity-70 max-w-xl">
           Your campaigns averaged 6.8% engagement vs the 1.2% industry benchmark for paid social. At $0.004 cost-per-view, you&apos;re getting 20× the efficiency of studio-produced ads.
@@ -1144,16 +1221,20 @@ function BrandAnalyticsPanel({ data }: { data: typeof brandData }) {
 }
 
 /* ── Creator Profile Panel ───────────────────────────────────── */
-function CreatorProfilePanel({ data }: { data: typeof creatorData }) {
+function CreatorProfilePanel({ user }: { user: CurrentUserView | null }) {
+  const platforms = Object.keys(user?.socials ?? {})
+    .filter((k) => k !== "website" && (user?.socials?.[k]))
+    .map((k) => k.charAt(0).toUpperCase() + k.slice(1))
+    .join(" · ");
   const fields = [
-    { label: "Display name",  value: data.user.name                       },
-    { label: "Handle",        value: data.user.handle                      },
-    { label: "Account type",  value: data.user.tier                        },
-    { label: "Niche",         value: "Books & Culture"                     },
-    { label: "Platforms",     value: "TikTok · Instagram"                  },
-    { label: "Email",         value: "maya.r@example.com"                  },
+    { label: "Display name",  value: user?.name ?? "—"                     },
+    { label: "Handle",        value: user?.handle ?? "—"                   },
+    { label: "Account type",  value: user?.tier ?? "—"                     },
+    { label: "Niche",         value: user?.bio || "—"                      },
+    { label: "Platforms",     value: platforms || "—"                      },
+    { label: "Email",         value: user?.email ?? "—"                    },
     { label: "Payout method", value: "PayPal — verified"                   },
-    { label: "Location",      value: "Brooklyn, NY"                        },
+    { label: "Location",      value: "—"                                   },
   ];
   return (
     <div className="db-tab-section">
@@ -1169,12 +1250,16 @@ function CreatorProfilePanel({ data }: { data: typeof creatorData }) {
         style={{ boxShadow: "5px 5px 0 0 var(--color-fg)" }}>
         {/* Hero strip */}
         <div className="db-profile-hero" style={{ background: "var(--color-panel)" }}>
-          <div className="db-profile-avatar" style={{ color: "var(--color-fg)" }}>
-            {data.user.avatar}
+          <div className="db-profile-avatar overflow-hidden" style={{ color: "var(--color-fg)" }}>
+            {user?.avatarUrl ? (
+              <img src={user.avatarUrl} alt={user.name} className="w-full h-full object-cover" />
+            ) : (
+              user?.avatar ?? "…"
+            )}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="font-display italic text-2xl leading-tight">{data.user.name}</p>
-            <p className="font-mono text-[11px] opacity-55 mt-0.5">{data.user.handle}</p>
+            <p className="font-display italic text-2xl leading-tight">{user?.name ?? "Loading…"}</p>
+            <p className="font-mono text-[11px] opacity-55 mt-0.5">{user?.handle ?? ""}</p>
             <div className="flex items-center gap-2 mt-3 flex-wrap">
               <span className="inline-flex items-center gap-1 font-mono text-[9px] uppercase tracking-[0.18em] px-2.5 py-1 rounded-full"
                 style={{ background: "color-mix(in srgb, var(--color-accent) 20%, transparent)", color: "var(--color-accent)", border: "1px solid var(--color-accent)" }}>
@@ -1185,7 +1270,7 @@ function CreatorProfilePanel({ data }: { data: typeof creatorData }) {
               </span>
             </div>
           </div>
-          <Link href="/creators/mayareads"
+          <Link href={user?.handle?.startsWith("@") ? `/talents/${user.handle.slice(1)}` : "/talents"}
             className="hidden sm:inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.18em] px-3 py-1.5 rounded-full border-2 border-(--color-fg) hover:bg-(--color-fg) hover:text-(--color-bg) transition-colors shrink-0">
             <ExternalLink className="w-3 h-3" />
             Public profile
@@ -1205,11 +1290,11 @@ function CreatorProfilePanel({ data }: { data: typeof creatorData }) {
 
       {/* Quick actions */}
       <div className="flex flex-wrap gap-3">
-        <Link href="/creators/mayareads"
+        <Link href="/talents/mayareads"
           className="inline-flex items-center gap-2 btn-primary" style={{ fontSize: "11px", padding: "0.55rem 1.25rem" }}>
           View public profile <ExternalLink className="w-3.5 h-3.5" />
         </Link>
-        <Link href="/creators/apply"
+        <Link href="/talents/apply"
           className="inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.15em] px-4 py-2 rounded-full border-2 border-(--color-fg) hover:bg-(--color-fg) hover:text-(--color-bg) transition-colors">
           Edit creator details <ArrowUpRight className="w-3.5 h-3.5" />
         </Link>
@@ -1230,7 +1315,7 @@ function BrandCreatorsPanel() {
             Saved creators.
           </h2>
         </div>
-        <Link href="/creators"
+        <Link href="/talents"
           className="inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.15em] px-4 py-2.5 rounded-full border-2 border-(--color-fg) hover:bg-(--color-fg) hover:text-(--color-bg) transition-colors self-start md:self-auto">
           Browse all creators <ArrowUpRight className="w-3.5 h-3.5" />
         </Link>
@@ -1270,7 +1355,7 @@ function BrandCreatorsPanel() {
                   <p className="font-display italic text-lg leading-tight truncate">{c.name}</p>
                   <p className="font-mono text-[10px] opacity-50 mt-0.5 truncate">{c.title} · {c.followers} {c.platform}</p>
                 </div>
-                <Link href={`/creators/${c.handle}`}
+                <Link href={`/talents/${c.handle}`}
                   className="w-8 h-8 rounded-full border-2 border-(--color-fg) flex items-center justify-center hover:bg-(--color-fg) hover:text-(--color-bg) transition-colors shrink-0">
                   <ArrowUpRight className="w-3.5 h-3.5" />
                 </Link>
@@ -1403,201 +1488,179 @@ function SettingsPanel({ isCreator }: { isCreator: boolean }) {
 /* MESSAGES / CHAT                                                */
 /* ────────────────────────────────────────────────────────────── */
 
-type ChatMsg = {
-  id: string;
-  sender: "brand" | "creator" | "system";
-  type: "text" | "file" | "system" | "milestone";
-  content: string;
-  time: string;
-  file?: { name: string; type: "image" | "video" | "document" };
-  milestoneActions?: ("approve" | "revise")[];
-};
 
-type ChatThread = {
-  id: string;
-  name: string;           // brand/creator name
-  initial: string;        // avatar letter
-  campaign: string;       // campaign name
-  lastMessage: string;
-  lastTime: string;
-  unread: number;
-  milestones: { label: string; status: "done" | "active" | "pending" }[];
-  messages: ChatMsg[];
-};
-
-const CHAT_THREADS: ChatThread[] = [
-  {
-    id: "t1",
-    name: "Chamberlain Coffee",
-    initial: "C",
-    campaign: "Summer Cold Brew UGC",
-    lastMessage: "Content approved — payout triggered!",
-    lastTime: "2h ago",
-    unread: 2,
-    milestones: [
-      { label: "Brief", status: "done" },
-      { label: "Matched", status: "done" },
-      { label: "Draft", status: "done" },
-      { label: "Approved", status: "active" },
-      { label: "Live", status: "pending" },
-      { label: "Paid", status: "pending" },
-    ],
-    messages: [
-      { id: "m1", sender: "system", type: "system", content: "Brief approved", time: "May 20, 10:32am" },
-      { id: "m2", sender: "system", type: "system", content: "Creator matched: @mayareads", time: "May 20, 2:15pm" },
-      { id: "m3", sender: "brand", type: "text", content: "Hey Maya! Excited to work together. The main thing is a strong hook in the first 3 seconds — we want that scroll-stopping energy.", time: "10:45am" },
-      { id: "m3b", sender: "brand", type: "file", content: "Brief attached", time: "10:45am", file: { name: "summer-brief-v2.pdf", type: "document" } },
-      { id: "m4", sender: "creator", type: "text", content: "Love it! I have so many ideas already. Quick Q — are you shipping the product to me or do I use my own?", time: "11:02am" },
-      { id: "m5", sender: "brand", type: "text", content: "We'll ship it! DM us your address and we'll get a box out tomorrow. Should arrive by Thursday.", time: "11:18am" },
-      { id: "m6", sender: "creator", type: "text", content: "Perfect, just sent it. I'll start shooting as soon as it arrives!", time: "11:24am" },
-      { id: "m7", sender: "system", type: "milestone", content: "Draft submitted", time: "May 22, 3:45pm", file: { name: "chamberlain-draft1.mp4", type: "video" }, milestoneActions: ["approve", "revise"] },
-      { id: "m8", sender: "brand", type: "text", content: "This is great! The hook is perfect. One small note — can you add the discount code overlay at 0:42?", time: "4:10pm" },
-      { id: "m9", sender: "creator", type: "text", content: "Done! Updated version uploading now.", time: "5:30pm" },
-      { id: "m10", sender: "creator", type: "file", content: "Updated draft", time: "5:32pm", file: { name: "chamberlain-final.mp4", type: "video" } },
-      { id: "m11", sender: "system", type: "system", content: "Content approved by Chamberlain Coffee", time: "May 22, 6:01pm" },
-      { id: "m12", sender: "system", type: "system", content: "Payout of $850 triggered — arrives in 48h", time: "May 22, 6:01pm" },
-    ],
-  },
-  {
-    id: "t2",
-    name: "Nike Running",
-    initial: "N",
-    campaign: "Morning Ritual Series",
-    lastMessage: "Uploaded the revised cut — check when you can!",
-    lastTime: "1d ago",
-    unread: 1,
-    milestones: [
-      { label: "Brief", status: "done" },
-      { label: "Matched", status: "done" },
-      { label: "Draft", status: "active" },
-      { label: "Approved", status: "pending" },
-      { label: "Live", status: "pending" },
-      { label: "Paid", status: "pending" },
-    ],
-    messages: [
-      { id: "n1", sender: "system", type: "system", content: "Brief approved", time: "May 18, 9:00am" },
-      { id: "n2", sender: "system", type: "system", content: "Creator matched: @mayareads", time: "May 18, 11:30am" },
-      { id: "n3", sender: "brand", type: "text", content: "Welcome aboard! We're looking for an authentic morning run vibe — nothing too polished, real energy.", time: "12:15pm" },
-      { id: "n4", sender: "creator", type: "text", content: "That's literally my entire brand. I'll capture my actual morning routine this week.", time: "12:42pm" },
-      { id: "n5", sender: "system", type: "milestone", content: "Draft submitted", time: "May 21, 8:20am", file: { name: "nike-morning-v1.mp4", type: "video" }, milestoneActions: ["approve", "revise"] },
-      { id: "n6", sender: "brand", type: "text", content: "Love the energy! Could you try a version where the product appears earlier — within the first 5 seconds?", time: "2:30pm" },
-      { id: "n7", sender: "creator", type: "text", content: "Uploaded the revised cut — check when you can!", time: "May 22, 9:15am" },
-      { id: "n8", sender: "creator", type: "file", content: "Revised draft", time: "May 22, 9:15am", file: { name: "nike-morning-v2.mp4", type: "video" } },
-    ],
-  },
-  {
-    id: "t3",
-    name: "Penguin Random House",
-    initial: "P",
-    campaign: "Summer Reading List",
-    lastMessage: "Brief details attached. Let us know if you have questions!",
-    lastTime: "3d ago",
-    unread: 0,
-    milestones: [
-      { label: "Brief", status: "done" },
-      { label: "Matched", status: "done" },
-      { label: "Draft", status: "pending" },
-      { label: "Approved", status: "pending" },
-      { label: "Live", status: "pending" },
-      { label: "Paid", status: "pending" },
-    ],
-    messages: [
-      { id: "p1", sender: "system", type: "system", content: "Brief approved", time: "May 19, 3:00pm" },
-      { id: "p2", sender: "system", type: "system", content: "Creator matched: @mayareads", time: "May 19, 4:45pm" },
-      { id: "p3", sender: "brand", type: "text", content: "Hi Maya! We loved your BookTok content. For this campaign, we want a \"summer reading stack\" format — casual, cozy, aspirational.", time: "5:10pm" },
-      { id: "p4", sender: "brand", type: "file", content: "Brief details attached. Let us know if you have questions!", time: "5:10pm", file: { name: "prh-summer-brief.pdf", type: "document" } },
-    ],
-  },
-];
-
-function MessagesPanel({ isCreator }: { isCreator: boolean }) {
-  const [activeThread, setActiveThread] = React.useState<string | null>(null);
-  const [inputValue, setInputValue] = React.useState("");
-  const [toast, setToast] = React.useState<string | null>(null);
+function MessagesPanel(_props: { isCreator: boolean }) {
+  const myId = useAuthStore((s) => s.user?.id);
+  const [conversations, setConversations] = React.useState<Conversation[]>([]);
+  const [activeId, setActiveId] = React.useState<number | null>(null);
+  const [messages, setMessages] = React.useState<ChatMessage[]>([]);
+  const [input, setInput] = React.useState("");
+  const [loading, setLoading] = React.useState(true);
   const messagesRef = React.useRef<HTMLDivElement>(null);
-  const thread = CHAT_THREADS.find((t) => t.id === activeThread);
-
-  // Scroll to bottom when thread opens
+  const socketRef = React.useRef<Socket | null>(null);
+  const activeIdRef = React.useRef<number | null>(null);
   React.useEffect(() => {
-    if (activeThread && messagesRef.current) {
+    activeIdRef.current = activeId;
+  }, [activeId]);
+
+  const loadConversations = React.useCallback(async () => {
+    try {
+      const page = await chatApi.conversations();
+      setConversations(page.data);
+    } catch {
+      /* not signed in / no data */
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    loadConversations();
+  }, [loadConversations]);
+
+  // Real-time: connect the chat socket once and stream messages live.
+  React.useEffect(() => {
+    let socket: Socket | undefined;
+    let cancelled = false;
+    fetch("/api/chat/token")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: { token?: string } | null) => {
+        if (cancelled || !data?.token) return;
+        const url = process.env.NEXT_PUBLIC_WS_URL ?? "http://localhost:8080";
+        socket = io(`${url}/chat`, {
+          auth: { token: data.token },
+          transports: ["websocket"],
+        });
+        socketRef.current = socket;
+        socket.on("connect", () => {
+          if (activeIdRef.current != null) {
+            socket?.emit("join-conversation", {
+              conversationId: activeIdRef.current,
+            });
+          }
+        });
+        socket.on("conversation-messages", (msgs: ChatMessage[]) => {
+          setMessages([...msgs].reverse()); // gateway sends newest-first
+        });
+        socket.on("message", (m: ChatMessage) => {
+          if (m.conversationId === activeIdRef.current) {
+            setMessages((prev) => [...prev, m]);
+          }
+          loadConversations(); // refresh last-message preview
+        });
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+      socket?.disconnect();
+      socketRef.current = null;
+    };
+  }, [loadConversations]);
+
+  // Join the open conversation → gateway replies with its recent messages.
+  React.useEffect(() => {
+    if (activeId != null) {
+      socketRef.current?.emit("join-conversation", { conversationId: activeId });
+      socketRef.current?.emit("see-conversation", { conversationId: activeId });
+    }
+  }, [activeId]);
+
+  React.useEffect(() => {
+    if (messagesRef.current) {
       messagesRef.current.scrollTop = messagesRef.current.scrollHeight;
     }
-  }, [activeThread]);
+  }, [messages, activeId]);
 
-  // Auto-clear toast
-  React.useEffect(() => {
-    if (!toast) return;
-    const id = setTimeout(() => setToast(null), 1600);
-    return () => clearTimeout(id);
-  }, [toast]);
+  const otherOf = (c: Conversation) =>
+    c.participants?.find((p) => p.userId !== myId)?.user;
+  const nameOf = (c: Conversation) => {
+    const u = otherOf(c);
+    return u?.displayName || u?.handle || u?.email || "Conversation";
+  };
+  const initialOf = (s: string) => (s.trim()[0] || "?").toUpperCase();
+  const timeOf = (iso?: string) =>
+    iso
+      ? new Date(iso).toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      : "";
 
-  const showToast = (msg: string) => setToast(msg);
+  const active = conversations.find((c) => c.id === activeId) ?? null;
 
   const handleSend = () => {
-    if (!inputValue.trim()) return;
-    setInputValue("");
-    showToast("Message sent");
+    const content = input.trim();
+    if (!content || activeId == null) return;
+    socketRef.current?.emit("message", {
+      conversationId: activeId,
+      content,
+      variant: "text",
+    });
+    setInput(""); // gateway echoes the saved message back via "message"
   };
 
-  const totalUnread = CHAT_THREADS.reduce((n, t) => n + t.unread, 0);
-
   return (
-    <div className="db-chat-layout" data-thread-open={activeThread ? "true" : "false"}>
+    <div
+      className="db-chat-layout"
+      data-thread-open={activeId != null ? "true" : "false"}
+    >
       {/* ── Thread list ───────────────────────────────────── */}
       <div className="db-chat-threads" role="listbox" aria-label="Message threads">
-        {/* Header */}
         <div className="px-5 py-4 border-b border-(--color-border)">
-          <div className="flex items-center justify-between mb-1">
-            <h2 className="font-display italic text-2xl leading-none">Messages</h2>
-            {totalUnread > 0 && (
-              <Chip asSpan variant="solid" size="xs" aria-label={`${totalUnread} unread`}>{totalUnread}</Chip>
-            )}
-          </div>
-          <MonoLabel size="sm" opacity={50}>✦ {CHAT_THREADS.length} campaign conversations</MonoLabel>
+          <h2 className="font-display italic text-2xl leading-none mb-1">
+            Messages
+          </h2>
+          <MonoLabel size="sm" opacity={50}>
+            ✦ {conversations.length} conversation
+            {conversations.length === 1 ? "" : "s"}
+          </MonoLabel>
         </div>
-        {/* Threads */}
-        {CHAT_THREADS.map((t) => (
+
+        {loading && (
+          <p className="px-5 py-4 font-mono text-[11px] uppercase tracking-[0.2em] opacity-50">
+            Loading…
+          </p>
+        )}
+        {!loading && conversations.length === 0 && (
+          <p className="px-5 py-4 font-sans text-[13px] opacity-55">
+            No conversations yet.
+          </p>
+        )}
+
+        {conversations.map((c) => (
           <button
-            key={t.id}
+            key={c.id}
             className="db-chat-thread"
             role="option"
-            aria-selected={activeThread === t.id}
-            aria-label={`${t.name} — ${t.campaign}${t.unread > 0 ? `, ${t.unread} unread` : ""}`}
-            data-active={activeThread === t.id ? "true" : "false"}
-            onClick={() => setActiveThread(t.id)}
+            aria-selected={activeId === c.id}
+            data-active={activeId === c.id ? "true" : "false"}
+            onClick={() => setActiveId(c.id)}
           >
-            <Avatar initial={t.initial} size="md" />
+            <Avatar initial={initialOf(nameOf(c))} size="md" />
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between gap-2 mb-0.5">
-                <MonoLabel size="md" weight="semibold" className="truncate">{t.name}</MonoLabel>
-                <MonoLabel size="xs" opacity={45} className="shrink-0">{t.lastTime}</MonoLabel>
+                <MonoLabel size="md" weight="semibold" className="truncate">
+                  {nameOf(c)}
+                </MonoLabel>
+                <MonoLabel size="xs" opacity={45} className="shrink-0">
+                  {timeOf(c.lastMessage?.createdAt)}
+                </MonoLabel>
               </div>
-              <p className="font-sans text-[12px] opacity-60 truncate leading-snug">{t.lastMessage}</p>
-              {/* Milestone chips */}
-              <div className="flex items-center gap-1 mt-1.5 flex-wrap">
-                {t.milestones.filter((m) => m.status === "done" || m.status === "active").map((m) => (
-                  <Chip
-                    key={m.label}
-                    asSpan
-                    size="xs"
-                    variant={m.status === "active" ? "active" : "done"}
-                  >
-                    {m.status === "done" ? "✓ " : "● "}{m.label}
-                  </Chip>
-                ))}
-              </div>
+              <p className="font-sans text-[12px] opacity-60 truncate leading-snug">
+                {c.lastMessage?.content ?? "No messages yet"}
+              </p>
             </div>
-            {t.unread > 0 && (
-              <Chip asSpan variant="solid" size="xs" aria-hidden="true" className="shrink-0">{t.unread}</Chip>
-            )}
           </button>
         ))}
       </div>
 
       {/* ── Chat view ─────────────────────────────────────── */}
-      {thread ? (
-        <div className="db-chat-view" role="log" aria-label={`Conversation with ${thread.name}`}>
-          {/* Chat header */}
+      {active ? (
+        <div
+          className="db-chat-view"
+          role="log"
+          aria-label={`Conversation with ${nameOf(active)}`}
+        >
           <div className="db-chat-header">
             <IconButton
               icon={<ArrowLeft className="w-3.5 h-3.5" />}
@@ -1605,123 +1668,51 @@ function MessagesPanel({ isCreator }: { isCreator: boolean }) {
               size="sm"
               variant="outline"
               className="db-chat-back"
-              onClick={() => setActiveThread(null)}
+              onClick={() => setActiveId(null)}
             />
-            <Avatar initial={thread.initial} size="sm" />
+            <Avatar initial={initialOf(nameOf(active))} size="sm" />
             <div className="flex-1 min-w-0">
-              <MonoLabel size="md" weight="semibold" as="p" className="truncate">{thread.name}</MonoLabel>
-              <MonoLabel size="xs" opacity={45} as="p" className="truncate">{thread.campaign}</MonoLabel>
+              <MonoLabel size="md" weight="semibold" as="p" className="truncate">
+                {nameOf(active)}
+              </MonoLabel>
             </div>
-          </div>
-
-          {/* Milestone strip */}
-          <div className="db-chat-milestones" role="progressbar" aria-label="Campaign milestones" aria-valuenow={thread.milestones.filter((m) => m.status === "done").length} aria-valuemax={thread.milestones.length}>
-            {thread.milestones.map((m, i) => (
-              <div key={m.label} className="flex items-center" title={m.label}>
-                <div
-                  className="db-chat-ms-dot"
-                  data-done={m.status === "done" ? "true" : "false"}
-                  data-active={m.status === "active" ? "true" : "false"}
-                  aria-label={`${m.label}: ${m.status}`}
-                />
-                {i < thread.milestones.length - 1 && (
-                  <div className="db-chat-ms-line" data-done={m.status === "done" ? "true" : "false"} />
-                )}
-              </div>
-            ))}
-            <span className="db-chat-ms-label">
-              {thread.milestones.find((m) => m.status === "active")?.label ?? "Complete"}
-            </span>
           </div>
 
           {/* Messages */}
           <div className="db-chat-messages" ref={messagesRef}>
-            {thread.messages.map((msg) => {
-              if (msg.type === "system") {
-                return (
-                  <div key={msg.id} className="db-chat-system" role="status">
-                    <Check className="w-3 h-3" />
-                    <span>{msg.content}</span>
-                    <span style={{ opacity: 0.6 }}>· {msg.time}</span>
-                  </div>
-                );
-              }
-              if (msg.type === "milestone") {
-                return (
-                  <StickerCard
-                    key={msg.id}
-                    radius="md"
-                    padding="md"
-                    className="my-2 self-stretch"
-                  >
-                    <div className="flex items-center gap-2 mb-2">
-                      <Sparkle size={16} fill="var(--color-accent)" />
-                      <MonoLabel size="sm" weight="semibold">✦ {msg.content}</MonoLabel>
-                      <MonoLabel size="xs" opacity={45} className="ml-auto">{msg.time}</MonoLabel>
-                    </div>
-                    {msg.file && (
-                      <FileChip name={msg.file.name} type={msg.file.type} onOpen={() => showToast(`Opening ${msg.file?.name}`)} />
-                    )}
-                    {msg.milestoneActions && (
-                      <div className="flex items-center gap-2 mt-3">
-                        {msg.milestoneActions.includes("approve") && (
-                          <button
-                            className="btn-primary"
-                            style={{ fontSize: "10px", padding: "0.4rem 0.85rem" }}
-                            onClick={() => showToast("Content approved ✓")}
-                          >
-                            <Check className="w-3 h-3" /> Approve
-                          </button>
-                        )}
-                        {msg.milestoneActions.includes("revise") && (
-                          <button
-                            className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.12em] px-3 py-1.5 rounded-full border-2 border-(--color-fg) hover:bg-(--color-fg) hover:text-(--color-bg) transition-colors"
-                            onClick={() => showToast("Revision requested")}
-                          >
-                            Request revision
-                          </button>
-                        )}
-                      </div>
-                    )}
-                  </StickerCard>
-                );
-              }
-              // text or file message
-              const isSelf = (isCreator && msg.sender === "creator") || (!isCreator && msg.sender === "brand");
+            {messages.length === 0 && (
+              <p className="font-sans text-[13px] opacity-50 text-center py-8">
+                No messages yet — say hello.
+              </p>
+            )}
+            {messages.map((msg) => {
+              const isSelf = msg.userId === myId;
               return (
-                <div key={msg.id} className="flex flex-col" style={{ alignItems: isSelf ? "flex-end" : "flex-start" }}>
+                <div
+                  key={msg.id}
+                  className="flex flex-col"
+                  style={{ alignItems: isSelf ? "flex-end" : "flex-start" }}
+                >
                   <div className="db-chat-bubble" data-self={isSelf ? "true" : "false"}>
                     <p>{msg.content}</p>
-                    {msg.file && (
-                      <div className="mt-2">
-                        <FileChip name={msg.file.name} type={msg.file.type} onOpen={() => showToast(`Opening ${msg.file?.name}`)} />
-                      </div>
-                    )}
                   </div>
-                  <MonoLabel size="xs" opacity={35} className="mt-1 px-1">{msg.time}</MonoLabel>
+                  <MonoLabel size="xs" opacity={35} className="mt-1 px-1">
+                    {timeOf(msg.createdAt)}
+                  </MonoLabel>
                 </div>
               );
             })}
           </div>
 
-          {/* Toast — using InlineToast primitive */}
-          <InlineToast message={toast} onDismiss={() => setToast(null)} position="bottom-center" />
-
           {/* Composer */}
           <div className="db-chat-composer">
-            <IconButton
-              icon={<Paperclip className="w-3.5 h-3.5 opacity-60" />}
-              aria-label="Attach file"
-              size="md"
-              variant="ghost"
-            />
             <textarea
               className="db-chat-input"
               placeholder="Type a message..."
               aria-label="Message input"
               rows={1}
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
@@ -1729,18 +1720,22 @@ function MessagesPanel({ isCreator }: { isCreator: boolean }) {
                 }
               }}
             />
-            <button className="db-chat-send" aria-label="Send message" onClick={handleSend}>
+            <button
+              className="db-chat-send"
+              aria-label="Send message"
+              onClick={handleSend}
+              disabled={!input.trim()}
+            >
               <Send className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
       ) : (
-        /* Empty state — no thread selected (desktop only via CSS) */
         <div className="db-chat-empty">
           <EmptyState
             icon={<MessageSquare className="w-full h-full" />}
             title="Select a conversation"
-            caption={`${CHAT_THREADS.length} active campaign threads`}
+            caption={`${conversations.length} conversation${conversations.length === 1 ? "" : "s"}`}
             size="md"
           />
         </div>
@@ -1757,6 +1752,11 @@ export default function DashboardPage() {
   const router  = useRouter();
   const rootRef = React.useRef<HTMLDivElement>(null);
 
+  const authStatus = useAuthStore((s) => s.status);
+  const authUser   = useAuthStore((s) => s.user);
+  const currentUser = useCurrentUser();
+  const { logout } = useAuthActions();
+
   const [authed,          setAuthed]          = React.useState(false);
   const [mode,            setMode]            = React.useState<"creator" | "brand">("creator");
   const [activeNav,       setActiveNav]       = React.useState("overview");
@@ -1764,6 +1764,13 @@ export default function DashboardPage() {
   const [sidebarCollapsed, setSidebarCollapsed] = React.useState(false);
   const [bellOpen,        setBellOpen]        = React.useState(false);
   const bellRef = React.useRef<HTMLDivElement>(null);
+  const [notifications, setNotifications] = React.useState<AppNotification[]>([]);
+  React.useEffect(() => {
+    notificationsApi
+      .list()
+      .then((p) => setNotifications(p.data))
+      .catch(() => {});
+  }, []);
 
   // Sync activeNav with ?tab= query param on mount (deep-linking)
   React.useEffect(() => {
@@ -1795,34 +1802,28 @@ export default function DashboardPage() {
     return () => document.removeEventListener("mousedown", handle);
   }, [bellOpen]);
 
-  // Auth gate — redirect to /login if no session exists; read role from session
+  // Auth gate — driven by the NextAuth-backed Zustand store.
+  // Redirect to /login once we know the user is unauthenticated.
   React.useEffect(() => {
-    const raw = localStorage.getItem("icons-session");
-    if (!raw) {
+    if (authStatus === "loading") return;
+    if (authStatus === "unauthenticated" || !authUser) {
       router.replace("/login");
-    } else {
-      requestAnimationFrame(() => {
-        try {
-          const session = JSON.parse(raw) as { role?: string };
-          setMode(session.role === "brand" ? "brand" : "creator");
-        } catch {
-          setMode("creator");
-        }
-        setAuthed(true);
-      });
+      return;
     }
-  }, [router]);
+    setMode(authUser.role === "brand" ? "brand" : "creator");
+    setAuthed(true);
+  }, [authStatus, authUser, router]);
 
-  // Sign out — clear session and return to login
-  function handleSignOut() {
-    localStorage.removeItem("icons-session");
+  // Sign out — clear the session (NextAuth + store) and return to login.
+  async function handleSignOut() {
+    await logout();
     router.push("/login");
   }
 
-  // Demo: instantly switch role without signing out
+  // Demo: view the dashboard as the other role without changing the account.
+  // (Account role is owned by the backend; this only swaps the local view.)
   function handleSwitchRole(next: "creator" | "brand") {
     if (next === mode) return;
-    localStorage.setItem("icons-session", JSON.stringify({ role: next }));
     setMode(next);
     navigateTab("overview");
   }
@@ -1879,6 +1880,55 @@ export default function DashboardPage() {
     { scope: rootRef, dependencies: [authed] },
   );
 
+  // Real summary stats (auth'd, by role). Declared before the early return so
+  // hook order stays stable. Falls back to the static copy if not signed in.
+  const [summary, setSummary] = React.useState<
+    BrandDashboard | CreatorDashboard | null
+  >(null);
+  React.useEffect(() => {
+    let cancelled = false;
+    setSummary(null);
+    (mode === "creator" ? dashboardApi.creator() : dashboardApi.brand())
+      .then((s) => {
+        if (!cancelled) setSummary(s);
+      })
+      .catch(() => {
+        /* not signed in / no data — keep placeholder stats */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [mode]);
+
+  const stats = React.useMemo(() => {
+    const base = (mode === "creator" ? creatorData : brandData).stats;
+    if (!summary) return base;
+    if (mode === "creator" && "earnedThisMonthCents" in summary) {
+      return base.map((s) =>
+        s.label === "Earned this month"
+          ? {
+              ...s,
+              value: `$${(summary.earnedThisMonthCents / 100).toLocaleString()}`,
+            }
+          : s.label === "Active campaigns"
+            ? { ...s, value: String(summary.activeCampaigns) }
+            : s,
+      );
+    }
+    if (mode === "brand" && "totalCampaigns" in summary) {
+      return base.map((s) =>
+        s.label === "Active campaigns"
+          ? {
+              ...s,
+              value: String(summary.activeCampaigns),
+              delta: `${summary.totalCampaigns} total`,
+            }
+          : s,
+      );
+    }
+    return base;
+  }, [summary, mode]);
+
   if (!authed) return (
     <div className="min-h-svh bg-(--color-bg) flex flex-col items-center justify-center gap-6 px-6">
       <div className="flex flex-col items-center gap-4 w-full max-w-xs">
@@ -1919,13 +1969,13 @@ export default function DashboardPage() {
   });
 
   const quickActions = isCreator ? [
-    { label: "Browse new briefs",   href: "/creators",           icon: FileText   },
-    { label: "Update your profile", href: "/creators/mayareads", icon: Users      },
+    { label: "Browse new briefs",   href: "/talents",           icon: FileText   },
+    { label: "Update your profile", href: "/talents/mayareads", icon: Users      },
     { label: "View payout history", href: "#",                   icon: DollarSign },
     { label: "Platform settings",   href: "#",                   icon: Settings   },
   ] : [
     { label: "Build a new brief",   href: "/brief-builder",      icon: FileText   },
-    { label: "Browse all creators", href: "/creators",           icon: Users      },
+    { label: "Browse all creators", href: "/talents",           icon: Users      },
     { label: "View analytics",      href: "#",                   icon: BarChart2  },
     { label: "Campaign settings",   href: "#",                   icon: Settings   },
   ];
@@ -1936,7 +1986,7 @@ export default function DashboardPage() {
 
       {/* ── Desktop sidebar ─────────────────────────────────────── */}
       <aside className="db-sidebar">
-        <SidebarContent mode={mode} active={activeNav} onNav={navigateTab} onSignOut={handleSignOut} />
+        <SidebarContent mode={mode} active={activeNav} onNav={navigateTab} onSignOut={handleSignOut} user={currentUser} />
       </aside>
 
       {/* ── Mobile overlay ──────────────────────────────────────── */}
@@ -1944,7 +1994,7 @@ export default function DashboardPage() {
         <div className="db-sidebar-mobile">
           <div className="w-72 max-w-[85vw] flex flex-col h-full overflow-y-auto border-r-2 border-(--color-fg)"
             style={{ background: "var(--color-bg)" }}>
-            <SidebarContent mode={mode} active={activeNav} onNav={navigateTab} onClose={() => setMobileOpen(false)} onSignOut={handleSignOut} />
+            <SidebarContent mode={mode} active={activeNav} onNav={navigateTab} onClose={() => setMobileOpen(false)} onSignOut={handleSignOut} user={currentUser} />
           </div>
           <div className="flex-1 bg-black/50" onClick={() => setMobileOpen(false)} />
         </div>
@@ -2023,24 +2073,28 @@ export default function DashboardPage() {
                     <p className="font-mono text-[10px] uppercase tracking-[0.25em] font-semibold">Notifications</p>
                     <span className="font-mono text-[9px] uppercase tracking-[0.18em] px-2 py-0.5 rounded-full"
                       style={{ background: "color-mix(in srgb, var(--color-accent) 20%, transparent)", color: "var(--color-accent)" }}>
-                      {(isCreator ? CREATOR_NOTIFS : BRAND_NOTIFS).filter(n => n.unread).length} new
+                      {notifications.length} new
                     </span>
                   </div>
                   {/* Items */}
-                  {(isCreator ? CREATOR_NOTIFS : BRAND_NOTIFS).map((n, i) => (
-                    <div key={i} className="db-notif-row">
-                      <div className="db-notif-icon"
-                        style={{ background: n.icon === "paid" ? "var(--color-accent)" : "var(--color-panel)" }}>
-                        {n.icon === "paid"  && <DollarSign className="w-3.5 h-3.5" />}
-                        {n.icon === "check" && <Check className="w-3.5 h-3.5" />}
-                        {n.icon === "brief" && <FileText className="w-3.5 h-3.5" />}
-                        {n.icon === "clock" && <Clock className="w-3.5 h-3.5" />}
+                  {notifications.length === 0 && (
+                    <div className="px-4 py-6 text-center font-mono text-[10px] uppercase tracking-[0.2em] opacity-45">
+                      No notifications
+                    </div>
+                  )}
+                  {notifications.map((n) => (
+                    <div key={n.id} className="db-notif-row">
+                      <div className="db-notif-icon" style={{ background: "var(--color-panel)" }}>
+                        <Bell className="w-3.5 h-3.5" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-mono text-[11px] font-semibold leading-snug">{n.text}</p>
-                        <p className="font-mono text-[10px] opacity-45 mt-0.5">{n.sub}</p>
+                        <p className="font-mono text-[11px] font-semibold leading-snug">
+                          {n.payload?.message ?? n.type}
+                        </p>
+                        <p className="font-mono text-[10px] opacity-45 mt-0.5">
+                          {n.createdAt ? new Date(n.createdAt).toLocaleString() : ""}
+                        </p>
                       </div>
-                      {n.unread && <span className="db-notif-dot shrink-0" />}
                     </div>
                   ))}
                   {/* Footer */}
@@ -2053,7 +2107,7 @@ export default function DashboardPage() {
                 </div>
               )}
             </div>
-            <Link href={isCreator ? "/creators" : "/brief-builder"}
+            <Link href={isCreator ? "/talents" : "/brief-builder"}
               className="hidden sm:inline-flex items-center gap-2 btn-primary"
               style={{ fontSize: "11px", padding: "0.45rem 1rem" }}>
               {isCreator ? "Browse briefs" : "New campaign"}
@@ -2079,7 +2133,7 @@ export default function DashboardPage() {
             <p className="font-mono font-semibold text-[11px] tracking-[0.32em] uppercase opacity-70 mb-5">{today}</p>
             <h1 className="font-display italic leading-[0.9] tracking-[-0.03em] mb-6"
               style={{ fontSize: "clamp(2.4rem,6vw,5.5rem)" }}>
-              {[greeting + ",", data.user.name.split(" ")[0] + "."].map((word, i) => (
+              {[greeting + ",", (currentUser?.firstName ?? "there") + "."].map((word, i) => (
                 <span key={i} className="db-greet-word inline-block mr-[0.22em] last:mr-0 relative">
                   {i === 1 && (
                     <span aria-hidden className="absolute inset-x-0 bottom-[0.06em] h-[0.22em] rounded-sm -z-10"
@@ -2108,7 +2162,7 @@ export default function DashboardPage() {
         {/* Stats strip */}
         <section style={{ background: "var(--color-fg)", color: "var(--color-bg)" }}>
           <div className="db-stats-grid max-w-7xl mx-auto">
-            {data.stats.map((s) => (
+            {stats.map((s) => (
               <div key={s.label} className="db-stat-cell">
                 <div className="font-display italic leading-none mb-2"
                   style={{ fontSize: "clamp(1.7rem,2.8vw,2.6rem)", color: "var(--color-accent)" }}>
@@ -2217,7 +2271,7 @@ export default function DashboardPage() {
                   {isCreator ? "Other campaigns." : "More campaigns."}
                 </h2>
               </div>
-              <Link href={isCreator ? "/creators" : "/brief-builder"}
+              <Link href={isCreator ? "/talents" : "/brief-builder"}
                 className="hidden sm:inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.22em] hover:opacity-60 transition-opacity pb-1">
                 {isCreator ? "All briefs" : "New campaign"}
                 <ArrowUpRight className="w-3.5 h-3.5" />
@@ -2317,7 +2371,14 @@ export default function DashboardPage() {
 
         {/* ── Campaigns tab ───────────────────────────────────── */}
         {activeNav === "campaigns" && (
-          isCreator ? <CreatorCampaignsPanel data={creatorData} /> : <BrandCampaignsPanel data={brandData} />
+          isCreator ? (
+            <>
+              <CreatorInvites />
+              <CreatorCampaignsPanel data={creatorData} />
+            </>
+          ) : (
+            <BrandCampaignsPanel data={brandData} />
+          )
         )}
 
         {/* ── Messages tab ────────────────────────────────────── */}
@@ -2333,7 +2394,7 @@ export default function DashboardPage() {
         {activeNav === "creators" && !isCreator && <BrandCreatorsPanel />}
 
         {/* ── Profile tab ──────────────────────────────────────── */}
-        {activeNav === "profile" && isCreator && <CreatorProfilePanel data={creatorData} />}
+        {activeNav === "profile" && isCreator && <CreatorProfilePanel user={currentUser} />}
 
         {/* ── Settings tab ─────────────────────────────────────── */}
         {activeNav === "settings" && <SettingsPanel isCreator={isCreator} />}

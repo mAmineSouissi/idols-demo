@@ -52,3 +52,5 @@ KIBOV2/*
 docs/*
 .mcp.json
 CLAUDE.md
+
+data/*

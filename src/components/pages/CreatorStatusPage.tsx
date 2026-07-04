@@ -245,8 +245,7 @@ export default function CreatorStatusPage() {
   }, { scope: ref });
 
   function goToDashboard() {
-    localStorage.setItem("icons-session", JSON.stringify({ role: "creator" }));
-    router.push("/dashboard?as=creator");
+    router.push("/dashboard");
   }
 
   return (
@@ -288,7 +287,7 @@ export default function CreatorStatusPage() {
             <LayoutDashboard className="w-4 h-4" />
             Preview your dashboard
           </button>
-          <Link href="/creators" className="btn-ghost">
+          <Link href="/talents" className="btn-ghost">
             Browse creators
             <ArrowUpRight className="w-4 h-4" />
           </Link>
@@ -438,7 +437,7 @@ export default function CreatorStatusPage() {
             className="font-mono text-[10px] text-(--color-muted-fg) hover:text-(--color-fg) transition-colors flex items-center gap-1 cursor-pointer">
             Dashboard <ArrowUpRight className="w-3 h-3" />
           </button>
-          <Link href="/creators" className="font-mono text-[10px] text-(--color-muted-fg) hover:text-(--color-fg) transition-colors flex items-center gap-1">
+          <Link href="/talents" className="font-mono text-[10px] text-(--color-muted-fg) hover:text-(--color-fg) transition-colors flex items-center gap-1">
             Creator roster <ArrowUpRight className="w-3 h-3" />
           </Link>
         </div>

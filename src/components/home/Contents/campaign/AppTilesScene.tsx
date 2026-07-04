@@ -1,7 +1,7 @@
-import React from "react";
+import { useRef } from "react";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
 import ProfileCard from "@/components/ui/ProfileCard";
-import { useEntrance, useMarquee, useWordReveal } from "@/hooks/animations";
-import { dur } from "@/lib/motion";
 
 type Creator = {
   name: string;
@@ -60,31 +60,49 @@ const CREATORS: Creator[] = [
 const MARQUEE_CREATORS = [...CREATORS, ...CREATORS];
 
 export const AppTilesScene = () => {
-  const ref = React.useRef<HTMLElement>(null);
+  const ref = useRef<HTMLElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
 
-  // Headline: per-word curtain reveal (mask mode = the original yPercent 110 feel)
-  useWordReveal({
-    scope: ref,
-    selector: ".aptsection-headline",
-    mode: "mask",
-    duration: dur.slow,
-    stagger: 0.08,
-    scrollTrigger: { start: "top 78%" },
-  });
+  useGSAP(
+    () => {
+      // Headline word reveal on scroll
+      gsap.from(".aptsection-word", {
+        yPercent: 110,
+        duration: 1.0,
+        ease: "power4.out",
+        stagger: 0.08,
+        scrollTrigger: {
+          trigger: ref.current,
+          start: "top 78%",
+        },
+      });
 
-  // Sub-eyebrow fade
-  useEntrance({
-    scope: ref,
-    selector: ".aptsection-sub",
-    y: 18,
-    duration: dur.base + 0.1,
-    ease: "power3.out",
-    delay: 0.45,
-    scrollTrigger: { start: "top 78%" },
-  });
+      gsap.from(".aptsection-sub", {
+        opacity: 0,
+        y: 18,
+        duration: 0.7,
+        ease: "power3.out",
+        delay: 0.45,
+        scrollTrigger: {
+          trigger: ref.current,
+          start: "top 78%",
+        },
+      });
 
-  // Marquee track — runs infinitely
-  const trackRef = useMarquee<HTMLDivElement>({ duration: 36 });
+      // Marquee: scroll left infinitely
+      if (trackRef.current) {
+        gsap.to(trackRef.current, {
+          xPercent: -50,
+          ease: "none",
+          duration: 36,
+          repeat: -1,
+        });
+      }
+    },
+    { scope: ref },
+  );
+
+  const words = ["One", "platform.", "Talent.", "Brands.", "Results."];
 
   return (
     <section
@@ -136,12 +154,28 @@ export const AppTilesScene = () => {
           className="aptsection-headline font-display leading-[0.88] tracking-tight"
           style={{ fontSize: "clamp(2.8rem, 9vw, 10rem)" }}
         >
-          One platform. Creators. Brands. Results.
+          {words.map((word, i) => (
+            <span
+              key={i}
+              className="inline-block overflow-hidden align-bottom mr-[0.2em] last:mr-0"
+            >
+              <span
+                className="aptsection-word inline-block"
+                style={{
+                  color: word === "Talent." ? "var(--accent)" : undefined,
+                }}
+              >
+                {word}
+              </span>
+            </span>
+          ))}
         </h2>
 
-        <p className="aptsection-sub font-mono text-[11px] tracking-[0.28em] uppercase mt-14 md:mt-20 text-bg/45">
-          creators · brands · campaigns · payments · analytics — all in one
-          place.
+        <p
+          className="aptsection-sub font-mono text-[11px] tracking-[0.28em] uppercase mt-14 md:mt-20 text-(--color-bg)/45"
+          style={{ maxWidth: "38ch" }}
+        >
+          talent · brands · campaigns · payments · analytics — all in one place.
         </p>
       </div>
 

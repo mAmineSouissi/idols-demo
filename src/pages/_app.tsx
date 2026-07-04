@@ -1,6 +1,9 @@
 import "@/styles/globals.css";
 import type { AppProps } from "next/app";
+import type { Session } from "next-auth";
+import { SessionProvider } from "next-auth/react";
 import { ThemeProvider } from "next-themes";
+import { AuthSync } from "@/components/auth/AuthSync";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import {
@@ -49,7 +52,10 @@ const bricolage = Bricolage_Grotesque({
   display: "swap",
 });
 
-export default function App({ Component, pageProps }: AppProps) {
+export default function App({
+  Component,
+  pageProps: { session, ...pageProps },
+}: AppProps<{ session?: Session }>) {
   const router = useRouter();
   const canonical = `https://icons.so${router.asPath.split("?")[0].split("#")[0]}`;
 
@@ -71,38 +77,41 @@ export default function App({ Component, pageProps }: AppProps) {
         className={`${archivoBlack.variable} ${inter.variable} ${caveat.variable} ${dmMono.variable} ${bricolage.variable}`}
       >
         <Head>
-          <meta name="description" content="Icons connects brands with 10,000+ vetted creators. No agency. No commission. Campaigns live in 48 hours." />
+          <meta name="description" content="Icons connects brands with 10,000+ vetted talent — creators, musicians, dancers, photographers and more. No agency. No commission. Campaigns live in 48 hours." />
           <meta name="viewport" content="width=device-width, initial-scale=1" />
           <link rel="canonical" href={canonical} />
-          <title>Icons — The Creator Platform Brands Trust</title>
+          <title>Icons — Where Brands Meet Talent</title>
           <link rel="icon" href="/favicon.ico" />
           {/* Open Graph — page-level Head blocks override these per-route */}
           <meta property="og:type" content="website" />
           <meta property="og:site_name" content="Icons" />
-          <meta property="og:title" content="Icons — The Creator Platform Brands Trust" />
-          <meta property="og:description" content="Icons connects brands with 10,000+ vetted creators. No agency. No commission. Campaigns live in 48 hours." />
+          <meta property="og:title" content="Icons — Where Brands Meet Talent" />
+          <meta property="og:description" content="Icons connects brands with 10,000+ vetted talent — creators, musicians, dancers, photographers and more. No agency. No commission. Campaigns live in 48 hours." />
           <meta property="og:image" content="https://icons.so/logoBlack.png" />
-          <meta property="og:image:alt" content="Icons — The Creator Platform Brands Trust" />
+          <meta property="og:image:alt" content="Icons — Where Brands Meet Talent" />
           {/* Twitter / X card */}
           <meta name="twitter:card" content="summary_large_image" />
           <meta name="twitter:site" content="@icons" />
-          <meta name="twitter:title" content="Icons — The Creator Platform Brands Trust" />
-          <meta name="twitter:description" content="Icons connects brands with 10,000+ vetted creators. No agency. No commission. Campaigns live in 48 hours." />
+          <meta name="twitter:title" content="Icons — Where Brands Meet Talent" />
+          <meta name="twitter:description" content="Icons connects brands with 10,000+ vetted talent — creators, musicians, dancers, photographers and more. No agency. No commission. Campaigns live in 48 hours." />
           <meta name="twitter:image" content="https://icons.so/logoBlack.png" />
         </Head>
-        <ThemeProvider
-          attribute="data-theme"
-          defaultTheme="light"
-          enableSystem={false}
-        >
-          <ErrorBoundary>
-            <SmoothScroll>
-              <PageTransition>
-                <Application Component={Component} pageProps={pageProps} />
-              </PageTransition>
-            </SmoothScroll>
-          </ErrorBoundary>
-        </ThemeProvider>
+        <SessionProvider session={session}>
+          <AuthSync />
+          <ThemeProvider
+            attribute="data-theme"
+            defaultTheme="light"
+            enableSystem={false}
+          >
+            <ErrorBoundary>
+              <SmoothScroll>
+                <PageTransition>
+                  <Application Component={Component} pageProps={pageProps} />
+                </PageTransition>
+              </SmoothScroll>
+            </ErrorBoundary>
+          </ThemeProvider>
+        </SessionProvider>
       </div>
     </>
   );

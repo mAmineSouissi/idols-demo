@@ -9,6 +9,7 @@ import { ArrowUpRight, Sparkles, Search, X, Lock } from "lucide-react";
 import { SectionShell, SectionLabel } from "@/components/shared/PagePrimitives";
 import { Sparkle } from "@/components/ui/Sparkle";
 import { ease, dur, stagger } from "@/lib/motion";
+import type { BackendUser } from "@api/types";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
@@ -224,6 +225,37 @@ const featuredCreators: Creator[] = [
 
 const handles = featuredCreators.map((c) => `@${c.slug}`);
 
+// ponytail: map a backend user → the card's Creator shape. category/tier aren't
+// on the backend, so they're derived/defaulted — add a real category field later.
+const PLATFORMS: Record<string, string> = {
+  tiktok: "TikTok",
+  instagram: "Instagram",
+  youtube: "YouTube",
+};
+function toCreator(u: BackendUser): Creator {
+  const followers = Number(u.metrics?.followers) || 0;
+  const social = u.socials ? Object.keys(u.socials)[0] : undefined;
+  return {
+    name: u.displayName || u.handle || "Creator",
+    slug: u.handle || u.id,
+    niche: u.bio || "",
+    followers:
+      followers >= 1e6
+        ? (followers / 1e6).toFixed(1) + "M"
+        : followers >= 1e3
+          ? Math.round(followers / 1e3) + "K"
+          : followers
+            ? String(followers)
+            : "—",
+    engagement: u.metrics?.engagementRate ? `${u.metrics.engagementRate}%` : "—",
+    platform: (social && PLATFORMS[social]) || "Instagram",
+    img: u.avatarUrl || "",
+    tier: followers >= 1e6 ? "macro" : followers >= 1e5 ? "mid" : "micro",
+    category: "Creator",
+    available: (u.status ?? "active") === "active",
+  };
+}
+
 const earnings = [
   {
     metric: "Avg. campaign payout",
@@ -238,7 +270,7 @@ const earnings = [
     delta: "Faster",
   },
   {
-    metric: "Creator commission",
+    metric: "Talent commission",
     icons: "0%",
     others: "20–35%",
     delta: "Yours",
@@ -342,6 +374,21 @@ const PAGE_STYLES = `
   .cr-filter-pill[data-active="true"] {
     background: var(--color-fg); border-color: var(--color-fg); color: var(--color-bg);
     box-shadow: 2px 2px 0 0 var(--color-accent);
+  }
+
+  /* Locked / anonymous creator cards */
+  .creator-card[data-locked="true"] img { filter: blur(20px) saturate(0.4) brightness(0.7); }
+  .creator-card[data-locked="true"]:hover { outline: none; cursor: default; }
+  .creator-card[data-locked="true"] .cr-lock-overlay {
+    position: absolute; inset: 0; z-index: 5;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 0.75rem; text-align: center; padding: 1.5rem;
+  }
+  .cr-lock-icon {
+    width: 40px; height: 40px; border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.35);
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(0,0,0,0.35); backdrop-filter: blur(8px);
   }
 
   /* Locked / anonymous creator cards */
@@ -465,6 +512,42 @@ function CreatorCardInner({
             {c.tier}
           </span>
         )}
+        {!locked && (
+          <>
+            <span
+              className="font-mono text-[11px] font-semibold tracking-[0.1em] px-3 py-1 rounded-full"
+              style={{
+                background: "rgba(255,255,255,0.8)",
+                backdropFilter: "blur(8px)",
+                color: "rgba(0,0,0,0.8)",
+              }}
+            >
+              {c.followers}
+            </span>
+            <span
+              className="font-mono text-[9px] tracking-[0.15em] px-2.5 py-0.5 rounded-full"
+              style={{
+                background: "rgba(255,255,255,0.55)",
+                backdropFilter: "blur(4px)",
+                color: "rgba(0,0,0,0.55)",
+              }}
+            >
+              {c.engagement} eng.
+            </span>
+          </>
+        )}
+        {locked && (
+          <span
+            className="font-mono text-[9px] tracking-[0.15em] px-2.5 py-0.5 rounded-full"
+            style={{
+              background: "rgba(255,255,255,0.45)",
+              backdropFilter: "blur(4px)",
+              color: "rgba(0,0,0,0.45)",
+            }}
+          >
+            {c.tier}
+          </span>
+        )}
       </div>
 
       {/* Bottom panel */}
@@ -503,6 +586,17 @@ function CreatorCardInner({
               <ArrowUpRight className="w-4 h-4" />
             </div>
           )}
+          {!locked && (
+            <div
+              className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 opacity-0 group-hover:opacity-100 transition-all duration-300"
+              style={{
+                background: "var(--color-accent)",
+                color: "rgba(0,0,0,0.85)",
+              }}
+            >
+              <ArrowUpRight className="w-4 h-4" />
+            </div>
+          )}
         </div>
       </div>
     </>
@@ -526,7 +620,7 @@ function CreatorCard({
     );
   }
   return (
-    <Link href={`/creators/${c.slug}`} className="creator-card group">
+    <Link href={`/talents/${c.slug}`} className="creator-card group">
       <CreatorCardInner c={c} index={index} locked={false} />
     </Link>
   );
@@ -620,9 +714,20 @@ export const CreatorsPage = () => {
   const searchRef = React.useRef<HTMLInputElement>(null);
   const [activeCategory, setActiveCategory] = React.useState("All");
   const [searchQuery, setSearchQuery] = React.useState("");
+  const [creators, setCreators] = React.useState<Creator[]>(featuredCreators);
+  React.useEffect(() => {
+    // Public directory source (email-stripped). Falls back to featuredCreators on failure.
+    fetch("/api/talents")
+      .then((r) => (r.ok ? r.json() : []))
+      .then((us: BackendUser[]) => {
+        const mapped = us.map(toCreator);
+        if (mapped.length) setCreators(mapped);
+      })
+      .catch(() => {});
+  }, []);
 
   const q = searchQuery.trim().toLowerCase();
-  const filteredCreators = featuredCreators
+  const filteredCreators = creators
     .filter((c) => {
       const matchCat = activeCategory === "All" || c.category === activeCategory;
       const matchQ =
@@ -920,9 +1025,9 @@ export const CreatorsPage = () => {
               <h1
                 className="font-display leading-[0.9]"
                 style={{ fontSize: "clamp(3.75rem,9vw,8rem)" }}
-                aria-label="Built For Creators."
+                aria-label="Built For Talent."
               >
-                {["Built", "For", "Creators."].map((w) => (
+                {["Built", "For", "Talent."].map((w) => (
                   <span key={w} className="block">
                     <span
                       className="cr-word inline-block"
@@ -948,8 +1053,8 @@ export const CreatorsPage = () => {
 
               {/* CTA buttons */}
               <div className="cr-hero-in flex flex-wrap items-center gap-4">
-                <Link href="/creators/apply" className="btn-primary group">
-                  Apply as creator
+                <Link href="/talents/apply" className="btn-primary group">
+                  Apply as talent
                   <ArrowUpRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                 </Link>
                 <Link href="#how-it-works" className="btn-ghost group">
@@ -961,7 +1066,7 @@ export const CreatorsPage = () => {
               {/* Stat pills */}
               <div className="cr-hero-in cr-stat-row">
                 {[
-                  { value: "10K+", label: "Creators", tone: "cream" },
+                  { value: "10K+", label: "Talents", tone: "cream" },
                   { value: "$10M+", label: "Earnings", tone: "pink" },
                   { value: "4.8★", label: "Rating", tone: "accent" },
                 ].map((s) => (
@@ -1195,7 +1300,7 @@ export const CreatorsPage = () => {
               </h2>
             </div>
             <p className="cr-reveal hidden md:block font-mono text-[12px] tracking-wide text-(--color-muted-fg) max-w-xs leading-relaxed self-end">
-              Every creator is verified for audience quality, engagement, and
+              Every talent is verified for audience quality, engagement, and
               brand-safety.
             </p>
           </div>
@@ -1214,7 +1319,7 @@ export const CreatorsPage = () => {
                 placeholder="Search by name, niche, platform…"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                aria-label="Search creators"
+                aria-label="Search talent"
               />
               {searchQuery && (
                 <button
@@ -1233,7 +1338,7 @@ export const CreatorsPage = () => {
             {/* right-fade hint for horizontal scroll on mobile */}
             <div className="pointer-events-none absolute inset-y-0 right-0 w-10 md:hidden"
               style={{ background: "linear-gradient(to right, transparent, var(--color-bg))" }} />
-            <div className="cr-filter-bar max-w-7xl mx-auto" role="group" aria-label="Filter creators by category">
+            <div className="cr-filter-bar max-w-7xl mx-auto" role="group" aria-label="Filter talent by category">
               {CATEGORIES.map((cat) => (
                 <button
                   key={cat}
@@ -1262,17 +1367,17 @@ export const CreatorsPage = () => {
                 <Sparkle size={52} fill="var(--color-fg)" className="opacity-10" />
                 <div className="flex flex-col gap-2">
                   <p className="font-display italic text-3xl md:text-4xl" style={{ color: "var(--color-fg)", opacity: 0.3 }}>
-                    {q ? `No results for "${searchQuery}".` : `No ${activeCategory.toLowerCase()} creators yet.`}
+                    {q ? `No results for "${searchQuery}".` : `No ${activeCategory.toLowerCase()} talent yet.`}
                   </p>
                   <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-(--color-muted-fg)">
-                    {featuredCreators.length}+ total creators across all categories
+                    {creators.length}+ total talents across all categories
                   </p>
                 </div>
                 <button
                   onClick={() => { setActiveCategory("All"); setSearchQuery(""); }}
                   className="btn-primary"
                 >
-                  Show all creators
+                  Show all talent
                   <ArrowUpRight className="w-4 h-4" />
                 </button>
               </div>
@@ -1311,10 +1416,10 @@ export const CreatorsPage = () => {
             {q
               ? `${filteredCreators.length} result${filteredCreators.length !== 1 ? "s" : ""} for "${searchQuery}"`
               : activeCategory === "All"
-              ? `Showing ${Math.min(PREVIEW_COUNT, filteredCreators.length)} of ${featuredCreators.length}+ creators`
-              : `${filteredCreators.length} creator${filteredCreators.length !== 1 ? "s" : ""} in ${activeCategory}`}
+              ? `Showing ${Math.min(PREVIEW_COUNT, filteredCreators.length)} of ${creators.length}+ talents`
+              : `${filteredCreators.length} talent${filteredCreators.length !== 1 ? "s" : ""} in ${activeCategory}`}
           </p>
-          <Link href="/creators/apply" className="btn-primary group cr-reveal">
+          <Link href="/talents/apply" className="btn-primary group cr-reveal">
             Join the roster
             <ArrowUpRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
           </Link>
@@ -1506,7 +1611,7 @@ export const CreatorsPage = () => {
               </h2>
             </div>
             <p className="cr-reveal hidden md:block font-mono text-[12px] tracking-wide text-(--color-muted-fg) max-w-xs leading-relaxed self-end">
-              Four things we got right that every creator platform gets wrong.
+              Four things we got right that every talent platform gets wrong.
             </p>
           </div>
         </div>
@@ -1619,7 +1724,7 @@ export const CreatorsPage = () => {
                 color: "color-mix(in srgb, var(--color-bg) 50%, transparent)",
               }}
             >
-              ✦ Creator story
+              ✦ Talent story
             </span>
           </div>
 
@@ -1712,8 +1817,8 @@ export const CreatorsPage = () => {
             </p>
 
             <div className="flex flex-wrap items-center justify-center gap-4">
-              <Link href="/creators/apply" className="btn-primary">
-                Apply as creator
+              <Link href="/talents/apply" className="btn-primary">
+                Apply as talent
                 <ArrowUpRight className="w-4 h-4" />
               </Link>
               <Link

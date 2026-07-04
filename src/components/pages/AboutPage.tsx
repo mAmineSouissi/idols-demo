@@ -332,7 +332,7 @@ export const AboutPage = () => {
 
             {/* Audience badges */}
             <div className="flex flex-wrap gap-2 mb-8">
-              {["For brands", "For creators"].map((label) => (
+              {["For brands", "For talent"].map((label) => (
                 <span key={label} className="ab-hero-badge sticker px-4 py-1.5 font-mono text-[10px] uppercase tracking-[0.25em]" data-tone="cream">
                   {label}
                 </span>
@@ -359,7 +359,7 @@ export const AboutPage = () => {
                 Start a campaign
                 <ArrowUpRight className="w-4 h-4" />
               </Link>
-              <Link href="/creators/apply" className="ab-hero-cta btn-ghost">
+              <Link href="/talents/apply" className="ab-hero-cta btn-ghost">
                 Join as creator
                 <ArrowUpRight className="w-4 h-4" />
               </Link>
@@ -663,7 +663,7 @@ export const AboutPage = () => {
                   Start a campaign
                   <ArrowUpRight className="w-4 h-4" />
                 </Link>
-                <Link href="/creators/apply" className="btn-ghost"
+                <Link href="/talents/apply" className="btn-ghost"
                   style={{
                     background: "transparent",
                     color: "var(--color-bg)",

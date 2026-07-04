@@ -82,7 +82,7 @@ const PAGE_STYLES = `
 /* ─── Explore links data ─────────────────────────────────────────── */
 
 const exploreLinks = [
-  { href: "/creators",     Icon: Users,          label: "Creator roster",   sub: "Browse 10K+ profiles"    },
+  { href: "/talents",     Icon: Users,          label: "Creator roster",   sub: "Browse 10K+ profiles"    },
   { href: "/brief-builder",Icon: FileText,        label: "Brief builder",    sub: "Build a campaign"        },
   { href: "/blog",         Icon: BookOpen,        label: "The journal",      sub: "Creator & brand reads"   },
   { href: "/brands",       Icon: LayoutDashboard, label: "For brands",       sub: "How Icons works"         },
@@ -94,8 +94,9 @@ export default function DemoPage() {
   const router = useRouter();
 
   function enter(role: "brand" | "creator") {
-    localStorage.setItem("icons-session", JSON.stringify({ role }));
-    router.push("/dashboard");
+    // The dashboard is auth-gated — send the visitor to log in / sign up,
+    // pre-selecting the account type they picked.
+    router.push(`/login?as=${role}`);
   }
 
   return (

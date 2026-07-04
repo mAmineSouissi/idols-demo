@@ -111,9 +111,20 @@ export default function ForgotPasswordPage() {
     }
     setError("");
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 1200));
-    setLoading(false);
-    setSent(true);
+    try {
+      await fetch("/api/auth/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: trimmed }),
+      });
+      // Always show the generic "sent" state — the backend never reveals
+      // whether the email is registered.
+      setSent(true);
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   /* ── Left panel (shared between both states) ─────────────────── */

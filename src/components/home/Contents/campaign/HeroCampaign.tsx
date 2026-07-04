@@ -204,7 +204,7 @@ export const HeroCampaign = ({ ready = true }: HeroCampaignProps) => {
         {/* Tiny eyebrow inside */}
         <div className="font-mono text-[15px] tracking-[0.32em] uppercase text-(--color-fg) flex items-center gap-2 opacity-60">
           <span>✦</span>
-          <span>where creators get paid & brands get results</span>
+          <span>where talent gets paid & brands get results</span>
           <span>✦</span>
         </div>
 
@@ -251,7 +251,7 @@ export const HeroCampaign = ({ ready = true }: HeroCampaignProps) => {
 
         {/* Value proposition */}
         <p className="hero-script font-script text-2xl md:text-3xl text-(--color-fg) -mt-2 text-center max-w-lg">
-          creators get paid in 48h &middot; brands get content that converts
+          talent gets paid in 48h &middot; brands get content that converts
         </p>
 
         {/* Trust metrics */}
@@ -269,8 +269,8 @@ export const HeroCampaign = ({ ready = true }: HeroCampaignProps) => {
 
         {/* CTAs */}
         <div className="mt-4 flex flex-wrap items-center justify-center gap-4">
-          <Link href="/creators" className="hero-cta btn-primary">
-            I&apos;m a creator
+          <Link href="/talents" className="hero-cta btn-primary">
+            I&apos;m talent
             <ArrowUpRight className="w-4 h-4" />
           </Link>
           <Link href="/brands" className="hero-cta btn-ghost">

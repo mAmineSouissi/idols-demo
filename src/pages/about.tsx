@@ -2,7 +2,7 @@ import Head from "next/head";
 import { AboutPage } from "@/components/pages/AboutPage";
 
 const TITLE = "About — Icons";
-const DESC = "Icons is not an agency. We built a platform that puts creators first — 0% commission, 48-hour payouts, and campaigns that actually convert.";
+const DESC = "Icons is not an agency. We built a platform that puts talent first — 0% commission, 48-hour payouts, and campaigns that actually convert.";
 
 export default function About() {
   return (

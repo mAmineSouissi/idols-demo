@@ -2,7 +2,7 @@ import Head from "next/head";
 import { BlogPage } from "@/components/pages/BlogPage";
 
 const TITLE = "Journal — Icons";
-const DESC = "Insights on creator commerce, campaign strategy, and the future of brand partnerships. Written by the Icons team.";
+const DESC = "Insights on talent commerce, campaign strategy, and the future of brand partnerships. Written by the Icons team.";
 
 export default function Blog() {
   return (

@@ -1,9 +1,9 @@
 export const cards = [
   {
-    title: "UGC Brand Positioning Strategy",
+    title: "Talent-Led Brand Positioning",
     badge: "Strategy",
     description:
-      "Authentic narratives that resonate with your target audience. Build trust through genuine creator stories and establish your brand's unique voice in the market.",
+      "Authentic narratives that resonate with your target audience. Build trust through genuine talent stories — creators, musicians, photographers — and establish your brand's unique voice in the market.",
     src: "/card1.jpg",
     bgColor: "bg-[#E8E05C]",
     textColor: "text-[#1A1A1A]",
@@ -23,7 +23,7 @@ export const cards = [
     title: "Content Strategy Guidelines",
     badge: "Guidelines",
     description:
-      "Comprehensive frameworks for creating impactful UGC campaigns. From ideation to execution, we provide the tools and guidance for successful creator partnerships.",
+      "Comprehensive frameworks for creating impactful talent-led campaigns. From ideation to execution, we provide the tools and guidance for successful partnerships across every creative discipline.",
     src: "/card3.jpg",
     bgColor: "bg-[#2B7FD9]",
     textColor: "text-white",

@@ -265,7 +265,7 @@ function SimilarCreatorCard({ creator }: { creator: CreatorProfile }) {
 
   return (
     <Link
-      href={`/creators/${creator.handle}`}
+      href={`/talents/${creator.handle}`}
       className="cp-similar-card group flex flex-col p-6 bg-(--color-bg) transition-colors duration-200 hover:bg-(--color-panel)"
     >
       {/* Tone strip */}
@@ -388,7 +388,7 @@ export default function CreatorProfilePage({ creator }: { creator: CreatorProfil
       {/* ── Breadcrumb ─────────────────────────────────────── */}
       <div className="border-b border-(--color-border) px-6 md:px-10 py-4">
         <Link
-          href="/creators"
+          href="/talents"
           className="inline-flex items-center gap-2 text-sm text-(--color-muted-fg) hover:text-(--color-fg) transition-colors group"
         >
           <ArrowLeft className="w-4 h-4 transition-transform duration-200 group-hover:-translate-x-0.5" />
@@ -752,7 +752,7 @@ export default function CreatorProfilePage({ creator }: { creator: CreatorProfil
                 <h2 className="font-display italic text-3xl md:text-4xl leading-tight">You might like.</h2>
               </div>
               <Link
-                href="/creators"
+                href="/talents"
                 className="hidden md:inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.22em] text-(--color-muted-fg) hover:text-(--color-fg) transition-colors"
               >
                 Full roster

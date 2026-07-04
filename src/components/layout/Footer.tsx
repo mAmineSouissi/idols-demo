@@ -18,7 +18,7 @@ gsap.registerPlugin(ScrollTrigger);
 
 const SITEMAP = [
   { label: "Home", href: "/" },
-  { label: "Creators", href: "/creators" },
+  { label: "Talents", href: "/talents" },
   { label: "Brands", href: "/brands" },
   { label: "Pricing", href: "/pricing" },
   { label: "About", href: "/about" },

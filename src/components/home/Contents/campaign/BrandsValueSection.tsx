@@ -199,11 +199,11 @@ export const BrandsValueSection = () => {
           Barometer
         </p>
 
-        {/* UGC vs Traditional */}
+        {/* Talent vs Traditional */}
         <div className="bvs-vs mb-28">
           <div className="flex items-center gap-4 mb-6">
             <span className="font-mono text-[11px] tracking-[0.28em] uppercase opacity-60">
-              UGC vs traditional
+              Talent-led vs traditional
             </span>
             <div
               className="flex-1 h-px"
@@ -320,7 +320,7 @@ export const BrandsValueSection = () => {
             </div>
             <h3 className="font-display italic text-[clamp(1.8rem,4vw,3.5rem)] leading-[0.92] tracking-tight">
               Request your first <br className="hidden md:block" />
-              UGC video today.
+              talent campaign today.
             </h3>
             <p className="font-script text-xl md:text-2xl mt-3 opacity-70">
               — no agency, no markup, just content that converts
@@ -333,7 +333,7 @@ export const BrandsValueSection = () => {
               <ArrowUpRight className="w-4 h-4" />
             </Link>
             <Link
-              href="/creators"
+              href="/talents"
               className="btn-ghost whitespace-nowrap"
               style={{
                 background: "transparent",

@@ -7,6 +7,7 @@ import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { cn } from "@/lib/utils";
 import { IconsLogo, StarMark } from "@/components/shared/IconsLogo";
+import { useAuthStore } from "@/stores/auth.store";
 
 function ThemeToggle() {
   const { theme, setTheme } = useTheme();
@@ -44,7 +45,7 @@ function ThemeToggle() {
 }
 
 const NAV_LINKS = [
-  { label: "Creators", href: "/creators" },
+  { label: "Talents",  href: "/talents" },
   { label: "Brands",   href: "/brands"   },
   { label: "Pricing",  href: "/pricing"  },
   { label: "About",    href: "/about"    },
@@ -54,7 +55,7 @@ const NAV_LINKS = [
 
 const TICKER = [
   "✦ now casting · summer drops",
-  "✦ 248 creators online",
+  "✦ 1,240 talents online · creators · musicians · dancers",
   "✦ paid in 48h · no agency",
   "✦ apply in 60 seconds",
 ];
@@ -64,12 +65,13 @@ const Header = () => {
   const headerRef = React.useRef<HTMLElement>(null);
   const [scrolled, setScrolled] = React.useState(false);
   const [mobileOpen, setMobileOpen] = React.useState(false);
-  const [loggedIn, setLoggedIn] = React.useState(false);
 
-  // Client-only: check session after mount to avoid SSR mismatch
-  React.useEffect(() => {
-    requestAnimationFrame(() => setLoggedIn(!!localStorage.getItem("icons-session")));
-  }, []);
+  // Auth state from the NextAuth-backed store. `mounted` guards against an
+  // SSR/CSR mismatch (the persisted store hydrates on the client).
+  const authStatus = useAuthStore((s) => s.status);
+  const [mounted, setMounted] = React.useState(false);
+  React.useEffect(() => setMounted(true), []);
+  const loggedIn = mounted && authStatus === "authenticated";
 
   React.useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 32);
@@ -167,7 +169,7 @@ const Header = () => {
               className="hidden md:inline-flex items-center gap-1.5 ml-1 px-2 py-0.5 rounded-full border-[1.5px] border-(--color-fg) font-mono text-[9px] tracking-[0.3em] uppercase"
               style={{ background: "var(--accent)" }}
             >
-              ✦ ugc 2026
+              ✦ talent · 2026
             </span>
           </Link>
 

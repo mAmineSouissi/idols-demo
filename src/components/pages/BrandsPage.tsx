@@ -167,6 +167,19 @@ const PAGE_STYLES = `
     display: flex; align-items: center; justify-content: center;
     background: rgba(0,0,0,0.35); backdrop-filter: blur(8px);
   }
+  .br-creator-card[data-locked="true"] img { filter: blur(20px) saturate(0.4) brightness(0.7); }
+  .br-creator-card[data-locked="true"]:hover { outline: none; cursor: default; }
+  .br-lock-overlay {
+    position: absolute; inset: 0; z-index: 5;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 0.75rem; text-align: center; padding: 1.5rem;
+  }
+  .br-lock-icon {
+    width: 40px; height: 40px; border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.35);
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(0,0,0,0.35); backdrop-filter: blur(8px);
+  }
   .br-platform-badge { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; padding: 0.2rem 0.6rem; border-radius: 999px; background: rgba(255,255,255,0.72); backdrop-filter: blur(6px); color: rgba(0,0,0,0.65); }
   .br-avail-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
   .br-avail-dot.avail { background: #22c55e; box-shadow: 0 0 6px rgba(34,197,94,0.7); }
@@ -1070,7 +1083,7 @@ export const BrandsPage = () => {
                 Beauty, fitness, food, travel, design — 40+ verticals, all
                 audited for audience quality.
               </p>
-              <Link href="/creators" className="btn-ghost group shrink-0" style={{ borderColor: "color-mix(in srgb, var(--color-bg) 30%, transparent)", color: "var(--color-bg)" }}>
+              <Link href="/talents" className="btn-ghost group shrink-0" style={{ borderColor: "color-mix(in srgb, var(--color-bg) 30%, transparent)", color: "var(--color-bg)" }}>
                 Browse roster
                 <ArrowUpRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
               </Link>
@@ -1197,7 +1210,7 @@ export const BrandsPage = () => {
               </h2>
             </div>
             <p className="br-reveal hidden md:block font-mono text-[12px] tracking-wide text-(--color-muted-fg) max-w-xs leading-relaxed self-end">
-              Four things we get right that every other creator platform gets
+              Four things we get right that every other talent platform gets
               wrong.
             </p>
           </div>

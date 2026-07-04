@@ -8,7 +8,7 @@ type Props = { creator: CreatorProfile };
 export default function CreatorProfile({ creator }: Props) {
   const title = `${creator.shortName} — Icons`;
   const desc = `${creator.shortName} — ${creator.title}. ${creator.bio.slice(0, 120)}…`;
-  const url = `https://icons.so/creators/${creator.handle}`;
+  const url = `https://icons.so/talents/${creator.handle}`;
 
   const personSchema = {
     "@context": "https://schema.org",

@@ -2,7 +2,7 @@ import Head from "next/head";
 import { PricingPage } from "@/components/pages/PricingPage";
 
 const TITLE = "Pricing — Icons";
-const DESC = "Transparent pricing for brands. Start free, scale with your campaigns. 0% creator commission — always.";
+const DESC = "Transparent pricing for brands. Start free, scale with your campaigns. 0% commission on talent payouts — always.";
 
 export default function Pricing() {
   return (
