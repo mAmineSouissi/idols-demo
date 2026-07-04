@@ -3,7 +3,6 @@
 import { useRef, useState, useEffect } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
-import Link from "next/link";
 import { useRouter } from "next/router";
 import { ArrowUpRight, ArrowLeft, Check } from "lucide-react";
 import { Sparkle } from "@/components/ui/Sparkle";
@@ -414,6 +413,7 @@ export const CreatorApplyPage = () => {
   const [dir, setDir] = useState<1 | -1>(1);
   const [form, setForm] = useState<Application>(INITIAL);
   const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   // Earnings calculator state
   const [calcTier, setCalcTier] = useState<TierId>("micro");
@@ -514,9 +514,36 @@ export const CreatorApplyPage = () => {
     });
   };
 
-  const handleSubmit = () => {
-    localStorage.setItem("icons-session", JSON.stringify({ role: "creator" }));
-    router.push("/talents/status");
+  const handleSubmit = async () => {
+    if (submitting) return;
+    setSubmitting(true);
+    setError("");
+    try {
+      const res = await fetch("/api/talent-applications", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      if (!res.ok) {
+        const data = (await res.json().catch(() => ({}))) as {
+          errors?: { message?: string }[];
+        };
+        setError(
+          data?.errors?.[0]?.message ??
+            "Something went wrong. Please try again.",
+        );
+        setSubmitting(false);
+        return;
+      }
+      localStorage.setItem(
+        "icons-session",
+        JSON.stringify({ role: "creator", email: form.email }),
+      );
+      router.push("/talents/status");
+    } catch {
+      setError("Network error — please retry.");
+      setSubmitting(false);
+    }
   };
 
   const current = STEPS[step];
@@ -743,7 +770,8 @@ export const CreatorApplyPage = () => {
             </div>
 
             <h2
-              className="font-display italic leading-[1.0] mb-4 ca-entrance"
+              className="font-display italic 
+              leading-[1.0] mb-4 ca-entrance"
               style={{
                 fontSize: "clamp(1.75rem,2.5vw,2.5rem)",
                 color: "var(--color-bg)",
@@ -1246,9 +1274,14 @@ export const CreatorApplyPage = () => {
               <button
                 type="button"
                 onClick={step < STEPS.length - 1 ? goNext : handleSubmit}
-                className="btn-primary group cursor-pointer"
+                disabled={submitting}
+                className="btn-primary group cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                {step < STEPS.length - 1 ? "Continue" : "Submit application"}
+                {step < STEPS.length - 1
+                  ? "Continue"
+                  : submitting
+                    ? "Submitting…"
+                    : "Submit application"}
                 <ArrowUpRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
               </button>
             </div>
