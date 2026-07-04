@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import gsap from "gsap";
@@ -8,6 +8,9 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
 import { ArrowUpRight, Check, Clock, Users, Zap } from "lucide-react";
 import { ease, dur, stagger } from "@/lib/motion";
+import { usersApi } from "@api/users";
+import { collaborationsApi, type Collaboration } from "@api/collaborations";
+import type { BackendUser } from "@api/types";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
@@ -203,94 +206,52 @@ const STRIP_STATS = [
   { value: "94",     label: "NPS score",            sub: "from brand partners" },
 ];
 
-const MATCHED_CREATORS = [
-  {
-    handle: "mayareads",
-    name: "Maya R.",
-    title: "Books & Culture",
-    photo: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80",
-    match: "98",
-    followers: "412K",
-    platform: "TikTok",
-    engagement: "6.4%",
-    why: "Highly engaged literary audience — ideal overlap with your readership demographics.",
-    samples: [
-      "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=300&h=400&fit=crop&q=70",
-      "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=300&h=400&fit=crop&q=70",
-      "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=300&h=400&fit=crop&q=70",
-    ],
-  },
-  {
-    handle: "priyaedits",
-    name: "Priya N.",
-    title: "Beauty & Wellness",
-    photo: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?auto=format&fit=crop&w=200&q=80",
-    match: "96",
-    followers: "890K",
-    platform: "Instagram",
-    engagement: "7.8%",
-    why: "Beauty-first audience, 91% female, 18–28 — your highest-converting age bracket.",
-    samples: [
-      "https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=300&h=400&fit=crop&q=70",
-      "https://images.unsplash.com/photo-1571781926291-c477ebfd024b?w=300&h=400&fit=crop&q=70",
-      "https://images.unsplash.com/photo-1526045612212-70caf35c14df?w=300&h=400&fit=crop&q=70",
-    ],
-  },
-  {
-    handle: "theofitness",
-    name: "Theo W.",
-    title: "Fitness Coaching",
-    photo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80",
-    match: "94",
-    followers: "1.2M",
-    platform: "YouTube",
-    engagement: "5.2%",
-    why: "Long-form reviews drive purchase intent. Gymshark collab hit 1.6M views.",
-    samples: [
-      "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=300&h=400&fit=crop&q=70",
-      "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=300&h=400&fit=crop&q=70",
-      "https://images.unsplash.com/photo-1547592180-85f173990554?w=300&h=400&fit=crop&q=70",
-    ],
-  },
-  {
-    handle: "niamakes",
-    name: "Nia O.",
-    title: "Craft & DIY",
-    photo: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80",
-    match: "91",
-    followers: "620K",
-    platform: "TikTok",
-    engagement: "9.1%",
-    why: "Highest engagement rate in your matched pool — DIY tutorials convert 3× industry avg.",
-    samples: [
-      "https://images.unsplash.com/photo-1452860606245-08befc0ff44b?w=300&h=400&fit=crop&q=70",
-      "https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=300&h=400&fit=crop&q=70",
-      "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=300&h=400&fit=crop&q=70",
-    ],
-  },
-  {
-    handle: "kaiwalks",
-    name: "Kai L.",
-    title: "Travel & Food",
-    photo: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80",
-    match: "89",
-    followers: "380K",
-    platform: "Instagram",
-    engagement: "4.9%",
-    why: "Travel & lifestyle crossover — strong food content that mirrors your brand aesthetic.",
-    samples: [
-      "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=300&h=400&fit=crop&q=70",
-      "https://images.unsplash.com/photo-1501555088652-021faa106b9b?w=300&h=400&fit=crop&q=70",
-      "https://images.unsplash.com/photo-1476224203421-9ac39bcb3df1?w=300&h=400&fit=crop&q=70",
-    ],
-  },
-];
 
 /* ─── Component ──────────────────────────────────────────────────── */
 
 export default function BriefStatusPage() {
   const ref    = useRef<HTMLDivElement>(null);
   const router = useRouter();
+
+  // Real matches for the brand's latest campaign.
+  const [campaignId, setCampaignId] = useState<string | null>(null);
+  const [collabs, setCollabs] = useState<Collaboration[]>([]);
+  const [creators, setCreators] = useState<BackendUser[]>([]);
+  const [busy, setBusy] = useState<string | null>(null);
+
+  const loadCollabs = useCallback((id: string) => {
+    collaborationsApi.forCampaign(id).then(setCollabs).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    // ponytail: candidate pool = all users (minus already-invited); add a
+    // ?role=creator filter once /users returns role.
+    usersApi.list().then(setCreators).catch(() => {});
+    fetch("/api/campaigns")
+      .then((r) => (r.ok ? r.json() : []))
+      .then((cs: { id: string }[]) => {
+        const id = cs[0]?.id ?? null;
+        setCampaignId(id);
+        if (id) loadCollabs(id);
+      })
+      .catch(() => {});
+  }, [loadCollabs]);
+
+  const invitedIds = new Set(collabs.map((c) => c.creatorId));
+  const candidates = creators.filter((u) => !invitedIds.has(u.id));
+
+  async function invite(creatorId: string) {
+    if (!campaignId) return;
+    setBusy(creatorId);
+    try {
+      await collaborationsApi.invite(campaignId, creatorId);
+      loadCollabs(campaignId);
+    } catch {
+      /* ignore */
+    } finally {
+      setBusy(null);
+    }
+  }
 
   function goToDashboard() {
     router.push("/dashboard");
@@ -488,48 +449,74 @@ export default function BriefStatusPage() {
             Your creator matches
           </p>
 
-          <div className="bs-creator-grid">
-            {MATCHED_CREATORS.map((c) => (
-              <Link key={c.handle} href={`/talents/${c.handle}`} className="bs-creator-card group">
-                {/* Sample content strip */}
-                <div className="bs-sample-strip">
-                  {c.samples.map((src, i) => (
-                    <img key={i} src={src} alt="" loading="lazy" />
-                  ))}
-                </div>
-
-                {/* Card body */}
-                <div className="p-4 flex flex-col gap-3 flex-1">
-                  {/* Avatar row */}
-                  <div className="flex items-center gap-2.5">
-                    <img src={c.photo} alt={c.name} className="bs-creator-avatar" />
-                    <div className="min-w-0 flex-1">
-                      <p className="font-mono text-[12px] font-semibold leading-tight truncate">{c.name}</p>
-                      <p className="font-mono text-[10px] text-(--color-muted-fg) truncate">{c.title}</p>
+          {collabs.length === 0 ? (
+            <p className="font-mono text-[11px] text-(--color-muted-fg) mb-8">
+              No creators invited yet — pick from the list below.
+            </p>
+          ) : (
+            <div className="bs-creator-grid mb-10">
+              {collabs.map((c) => {
+                const name =
+                  c.creator?.displayName || c.creator?.handle || "Creator";
+                return (
+                  <div key={c.id} className="bs-creator-card">
+                    <div className="p-4 flex items-center gap-3">
+                      {c.creator?.avatarUrl ? (
+                        <img src={c.creator.avatarUrl} alt={name} className="bs-creator-avatar" />
+                      ) : (
+                        <div
+                          className="bs-creator-avatar grid place-items-center font-mono text-sm"
+                          style={{ background: "var(--color-panel)" }}
+                        >
+                          {name[0]?.toUpperCase()}
+                        </div>
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <p className="font-mono text-[12px] font-semibold truncate">{name}</p>
+                        {c.creator?.handle && (
+                          <p className="font-mono text-[10px] text-(--color-muted-fg) truncate">@{c.creator.handle}</p>
+                        )}
+                      </div>
+                      <span className="bs-match-badge shrink-0 uppercase">{c.status}</span>
                     </div>
-                    <span className="bs-match-badge shrink-0">{c.match}%</span>
                   </div>
+                );
+              })}
+            </div>
+          )}
 
-                  {/* Stats row */}
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className="bs-stat-pill">{c.followers} {c.platform}</span>
-                    <span className="bs-stat-pill">{c.engagement} eng.</span>
-                  </div>
-
-                  {/* Why matched */}
-                  <p className="font-mono text-[10px] leading-relaxed text-(--color-muted-fg) flex-1">
-                    {c.why}
-                  </p>
-
-                  {/* View CTA */}
-                  <span className="font-mono text-[9px] uppercase tracking-[0.2em] flex items-center gap-1 transition-colors"
-                    style={{ color: "var(--color-accent)" }}>
-                    View profile <ArrowUpRight className="w-3 h-3" />
-                  </span>
-                </div>
-              </Link>
-            ))}
-          </div>
+          {/* Invite picker */}
+          {campaignId && candidates.length > 0 && (
+            <div>
+              <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-(--color-muted-fg) mb-4">
+                Invite creators
+              </p>
+              <div className="flex flex-col gap-2 max-w-xl">
+                {candidates.slice(0, 12).map((u) => {
+                  const name = u.displayName || u.handle || u.email;
+                  return (
+                    <div
+                      key={u.id}
+                      className="flex items-center justify-between gap-3 border-2 border-(--color-border) rounded-xl px-4 py-2.5"
+                    >
+                      <span className="font-mono text-[12px] truncate">
+                        {name}
+                        {u.handle ? ` · @${u.handle}` : ""}
+                      </span>
+                      <button
+                        type="button"
+                        disabled={busy === u.id}
+                        onClick={() => invite(u.id)}
+                        className="font-mono text-[10px] uppercase tracking-[0.14em] px-3 py-1.5 rounded-full border-2 border-(--color-fg) hover:bg-(--color-fg) hover:text-(--color-bg) transition-colors disabled:opacity-40 cursor-pointer shrink-0"
+                      >
+                        Invite
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           <p className="font-mono text-[10px] text-(--color-muted-fg) mt-6 text-center">
             Final matches confirmed by your campaign manager within 48 hours.
