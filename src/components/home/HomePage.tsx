@@ -41,7 +41,6 @@ export const HomePage = () => {
         style={{ visibility: loading ? "hidden" : "visible" }}
       >
         <HeroCampaign ready={!loading} />
-        <HeroCampaign ready={!loading} />
         <AppTilesScene />
         <WhyGenZ />
         <BrandSocialProof />
