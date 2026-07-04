@@ -9,6 +9,7 @@ import { ArrowUpRight, Sparkles, Search, X, Lock } from "lucide-react";
 import { SectionShell, SectionLabel } from "@/components/shared/PagePrimitives";
 import { Sparkle } from "@/components/ui/Sparkle";
 import { ease, dur, stagger } from "@/lib/motion";
+import type { BackendUser } from "@api/types";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
@@ -223,6 +224,37 @@ const featuredCreators: Creator[] = [
 ];
 
 const handles = featuredCreators.map((c) => `@${c.slug}`);
+
+// ponytail: map a backend user → the card's Creator shape. category/tier aren't
+// on the backend, so they're derived/defaulted — add a real category field later.
+const PLATFORMS: Record<string, string> = {
+  tiktok: "TikTok",
+  instagram: "Instagram",
+  youtube: "YouTube",
+};
+function toCreator(u: BackendUser): Creator {
+  const followers = Number(u.metrics?.followers) || 0;
+  const social = u.socials ? Object.keys(u.socials)[0] : undefined;
+  return {
+    name: u.displayName || u.handle || "Creator",
+    slug: u.handle || u.id,
+    niche: u.bio || "",
+    followers:
+      followers >= 1e6
+        ? (followers / 1e6).toFixed(1) + "M"
+        : followers >= 1e3
+          ? Math.round(followers / 1e3) + "K"
+          : followers
+            ? String(followers)
+            : "—",
+    engagement: u.metrics?.engagementRate ? `${u.metrics.engagementRate}%` : "—",
+    platform: (social && PLATFORMS[social]) || "Instagram",
+    img: u.avatarUrl || "",
+    tier: followers >= 1e6 ? "macro" : followers >= 1e5 ? "mid" : "micro",
+    category: "Creator",
+    available: (u.status ?? "active") === "active",
+  };
+}
 
 const earnings = [
   {
@@ -588,7 +620,7 @@ function CreatorCard({
     );
   }
   return (
-    <Link href={`/creators/${c.slug}`} className="creator-card group">
+    <Link href={`/talents/${c.slug}`} className="creator-card group">
       <CreatorCardInner c={c} index={index} locked={false} />
     </Link>
   );
@@ -682,9 +714,20 @@ export const CreatorsPage = () => {
   const searchRef = React.useRef<HTMLInputElement>(null);
   const [activeCategory, setActiveCategory] = React.useState("All");
   const [searchQuery, setSearchQuery] = React.useState("");
+  const [creators, setCreators] = React.useState<Creator[]>(featuredCreators);
+  React.useEffect(() => {
+    // Public directory source (email-stripped). Falls back to featuredCreators on failure.
+    fetch("/api/talents")
+      .then((r) => (r.ok ? r.json() : []))
+      .then((us: BackendUser[]) => {
+        const mapped = us.map(toCreator);
+        if (mapped.length) setCreators(mapped);
+      })
+      .catch(() => {});
+  }, []);
 
   const q = searchQuery.trim().toLowerCase();
-  const filteredCreators = featuredCreators
+  const filteredCreators = creators
     .filter((c) => {
       const matchCat = activeCategory === "All" || c.category === activeCategory;
       const matchQ =
@@ -1327,7 +1370,7 @@ export const CreatorsPage = () => {
                     {q ? `No results for "${searchQuery}".` : `No ${activeCategory.toLowerCase()} talent yet.`}
                   </p>
                   <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-(--color-muted-fg)">
-                    {featuredCreators.length}+ total talents across all categories
+                    {creators.length}+ total talents across all categories
                   </p>
                 </div>
                 <button
@@ -1373,7 +1416,7 @@ export const CreatorsPage = () => {
             {q
               ? `${filteredCreators.length} result${filteredCreators.length !== 1 ? "s" : ""} for "${searchQuery}"`
               : activeCategory === "All"
-              ? `Showing ${Math.min(PREVIEW_COUNT, filteredCreators.length)} of ${featuredCreators.length}+ talents`
+              ? `Showing ${Math.min(PREVIEW_COUNT, filteredCreators.length)} of ${creators.length}+ talents`
               : `${filteredCreators.length} talent${filteredCreators.length !== 1 ? "s" : ""} in ${activeCategory}`}
           </p>
           <Link href="/talents/apply" className="btn-primary group cr-reveal">
